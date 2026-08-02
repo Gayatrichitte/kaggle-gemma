@@ -281,31 +281,29 @@
             <input type="text" id="test-title-input" class="form-input" placeholder="e.g. Organic Chemistry Chapter 1 Assessment" oninput="validateStep1()" />
           </div>
 
+          <!-- Dual Option Selector Cards -->
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+            <!-- Option A Card -->
+            <div id="card-opt-pdf" class="card card-hover" onclick="selectSourceMode('pdf')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-accent); background:#eff6ff; border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease;">
+              <div style="font-size:2.2rem; margin-bottom:0.5rem;">📄</div>
+              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem;">Option A: Upload Syllabus PDF</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Upload your PDF syllabus document to extract text directly.</p>
+            </div>
+
+            <!-- Option B Card -->
+            <div id="card-opt-topic" class="card card-hover" onclick="selectSourceMode('topic')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-border); background:var(--color-surface); border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease;">
+              <div style="font-size:2.2rem; margin-bottom:0.5rem;">✨</div>
+              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem;">Option B: Subject / Topic Details</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Enter a topic name to generate questions using Gemma's AI database.</p>
+            </div>
+          </div>
+
           <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.5rem; margin-bottom:1.5rem;">
-            <!-- Mode Switcher Tabs -->
-            <div style="display:flex; gap:0.75rem; margin-bottom:1.25rem; border-bottom:1px solid var(--color-border); padding-bottom:0.75rem;">
-              <button type="button" id="tab-opt-topic" class="btn btn-secondary btn-sm" onclick="selectSourceMode('topic')" style="flex:1; font-weight:700; background:#eff6ff; color:var(--color-accent); border:1px solid var(--color-accent);">
-                ✨ Option B: Subject / Topic Details (Gemma AI Database)
-              </button>
-              <button type="button" id="tab-opt-pdf" class="btn btn-secondary btn-sm" onclick="selectSourceMode('pdf')" style="flex:1; font-weight:700;">
-                📄 Option A: Upload Syllabus PDF
-              </button>
-            </div>
-
-            <!-- Option B: Subject / Topic Details Input -->
-            <div id="sec-opt-topic" style="display:block;">
-              <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.35rem;">✨ Option B: Subject / Topic Details</div>
+            <!-- Option A: PDF Upload Section -->
+            <div id="sec-opt-pdf" style="display:block;">
+              <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.35rem;">📄 Option A: Upload Syllabus PDF Document</div>
               <p style="font-size:0.82rem; color:var(--color-muted); margin-bottom:0.75rem;">
-                Gemma AI will use its internal database of knowledge to generate questions for your chosen topic.
-              </p>
-              <textarea id="topic-details-input" class="form-textarea" rows="4" placeholder="Enter topic name or subject details (e.g. Photosynthesis, Light-dependent reactions, Calvin cycle, RuBisCO enzyme)..." oninput="validateStep1()"></textarea>
-            </div>
-
-            <!-- Option A: PDF Upload -->
-            <div id="sec-opt-pdf" style="display:none;">
-              <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.35rem;">📄 Option A: Upload Syllabus PDF</div>
-              <p style="font-size:0.82rem; color:var(--color-muted); margin-bottom:0.75rem;">
-                Upload a PDF file to extract text directly from your document.
+                Drag &amp; drop or click to upload your course syllabus PDF file.
               </p>
               <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
                 <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
@@ -327,6 +325,15 @@
                   <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ PDF Ready</div>
                 </div>
               </div>
+            </div>
+
+            <!-- Option B: Subject / Topic Details Input Section -->
+            <div id="sec-opt-topic" style="display:none;">
+              <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.35rem;">✨ Option B: Subject / Topic Details</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin-bottom:0.75rem;">
+                Gemma AI will use its extensive internal database of knowledge to generate questions for your chosen topic.
+              </p>
+              <textarea id="topic-details-input" class="form-textarea" rows="4" placeholder="Enter topic name or subject details (e.g. Photosynthesis, Light-dependent reactions, Calvin cycle, RuBisCO enzyme)..." oninput="validateStep1()"></textarea>
             </div>
           </div>
 
@@ -484,7 +491,7 @@
       topicDetails: '',
       fileContent: '',
       hasFile: false,
-      inputMode: 'topic',
+      inputMode: 'pdf',
       selectedTypes: ['MCQ', 'TF'],
       totalMarks: 20,
       duration: 30
@@ -495,29 +502,25 @@
     // Switch between Option A (PDF) and Option B (Topic / Gemma DB)
     window.selectSourceMode = function(mode) {
       testDetails.inputMode = mode;
-      const tabTopic = document.getElementById('tab-opt-topic');
-      const tabPdf = document.getElementById('tab-opt-pdf');
-      const secTopic = document.getElementById('sec-opt-topic');
+      const cardPdf = document.getElementById('card-opt-pdf');
+      const cardTopic = document.getElementById('card-opt-topic');
       const secPdf = document.getElementById('sec-opt-pdf');
+      const secTopic = document.getElementById('sec-opt-topic');
 
-      if (mode === 'topic') {
-        tabTopic.style.background = '#eff6ff';
-        tabTopic.style.color = 'var(--color-accent)';
-        tabTopic.style.border = '1px solid var(--color-accent)';
-        tabPdf.style.background = '';
-        tabPdf.style.color = '';
-        tabPdf.style.border = '';
-        secTopic.style.display = 'block';
-        secPdf.style.display = 'none';
-      } else {
-        tabPdf.style.background = '#eff6ff';
-        tabPdf.style.color = 'var(--color-accent)';
-        tabPdf.style.border = '1px solid var(--color-accent)';
-        tabTopic.style.background = '';
-        tabTopic.style.color = '';
-        tabTopic.style.border = '';
+      if (mode === 'pdf') {
+        cardPdf.style.border = '2px solid var(--color-accent)';
+        cardPdf.style.background = '#eff6ff';
+        cardTopic.style.border = '2px solid var(--color-border)';
+        cardTopic.style.background = 'var(--color-surface)';
         secPdf.style.display = 'block';
         secTopic.style.display = 'none';
+      } else {
+        cardTopic.style.border = '2px solid var(--color-accent)';
+        cardTopic.style.background = '#eff6ff';
+        cardPdf.style.border = '2px solid var(--color-border)';
+        cardPdf.style.background = 'var(--color-surface)';
+        secTopic.style.display = 'block';
+        secPdf.style.display = 'none';
       }
       validateStep1();
     };
