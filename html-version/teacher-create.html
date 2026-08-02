@@ -697,7 +697,7 @@
               ${opt}
               ${opt === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
             </div>`).join('');
-        } else if (q.type === 'True/False') {
+        } else if (q.type === 'TF' || q.type === 'True/False') {
           optionsHtml = ['True','False'].map(v => `
             <div class="q-option${v === q.answer ? ' correct' : ''}">
               <span class="q-opt-letter">${v[0]}</span>
