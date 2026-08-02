@@ -288,20 +288,30 @@
       saveBtn.disabled = true;
       saveBtn.textContent = "Saving to Firebase Firestore...";
 
+      const cleanQuestions = (generatedMcqs || []).map((q, idx) => ({
+        id: q.id || (idx + 1),
+        type: q.type || 'MCQ',
+        question: q.question || `Question ${idx + 1}`,
+        options: Array.isArray(q.options) ? q.options : ['Option A', 'Option B', 'Option C', 'Option D'],
+        answer: q.answer || (Array.isArray(q.options) ? q.options[0] : 'Option A'),
+        marks: q.marks || 2,
+        difficulty: q.difficulty || 'Medium'
+      }));
+
       const newTest = {
         id: Date.now(),
         code: testCode,
-        title: testName,
+        title: testName || 'Untitled PDF Assessment',
         subject: "PDF Assessment",
-        syllabus: extractedPdfText.substring(0, 500),
-        marks: generatedMcqs.length * 2,
+        syllabus: (extractedPdfText || '').substring(0, 500),
+        marks: cleanQuestions.length * 2,
         duration: 30,
-        questionsCount: generatedMcqs.length,
+        questionsCount: cleanQuestions.length,
         status: 'published',
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         createdAt: new Date().toISOString(),
         studentsCount: 0,
-        questions: generatedMcqs
+        questions: cleanQuestions
       };
 
       try {

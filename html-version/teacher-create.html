@@ -750,20 +750,32 @@
       publishBtn.textContent = 'Publishing to Firebase...';
 
       const testCode = 'GEM-' + Math.floor(100 + Math.random() * 900);
+      
+      // Clean questions array to remove any undefined fields for Firestore compatibility
+      const cleanQuestions = (generatedQuestions || []).map((q, idx) => ({
+        id: q.id || (idx + 1),
+        type: q.type || 'MCQ',
+        question: q.question || `Question ${idx + 1}`,
+        options: Array.isArray(q.options) ? q.options : (q.type === 'TF' ? ['True', 'False'] : ['Option A', 'Option B', 'Option C', 'Option D']),
+        answer: q.answer || (q.type === 'TF' ? 'True' : 'Option A'),
+        marks: q.marks || 2,
+        difficulty: q.difficulty || 'Medium'
+      }));
+
       const newTest = {
         id: Date.now(),
         code: testCode,
-        title: testDetails.title,
-        subject: testDetails.subject,
-        syllabus: testDetails.syllabusText,
-        marks: testDetails.calculatedMarks || testDetails.totalMarks,
-        duration: testDetails.duration,
-        questionsCount: generatedQuestions.length,
+        title: testDetails.title || 'Untitled Assessment',
+        subject: testDetails.subject || testDetails.title || 'General',
+        syllabus: testDetails.topicDetails || testDetails.fileContent || '',
+        marks: testDetails.calculatedMarks || testDetails.totalMarks || (cleanQuestions.length * 2),
+        duration: testDetails.duration || 30,
+        questionsCount: cleanQuestions.length,
         status: 'published',
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         createdAt: new Date().toISOString(),
         studentsCount: 0,
-        questions: generatedQuestions
+        questions: cleanQuestions
       };
 
       // Save to localStorage
@@ -778,15 +790,16 @@
       // Save to Firebase Firestore Database
       try {
         await setDoc(doc(db, "tests", testCode), newTest);
-        console.log("Test stored successfully in Firebase Firestore:", testCode);
+        console.log("✅ Test stored successfully in Firebase Firestore:", testCode);
+        showToast(`✅ Test ${testCode} saved to Firebase Firestore!`);
       } catch (e) {
-        console.warn("Firestore test save warning:", e);
+        console.error("❌ Firestore test save error:", e);
+        showToast("Notice: Saved locally. Firestore notice: " + e.message);
       }
 
-      showToast(`Test ${testCode} published & saved to Firebase!`);
       setTimeout(() => {
         window.location.href = `teacher-published.html?code=${testCode}`;
-      }, 600);
+      }, 800);
     };
   </script>
 </body>
