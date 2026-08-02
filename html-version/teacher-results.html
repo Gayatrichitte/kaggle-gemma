@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Teacher Assessment Results & Analytics – Education Analyzer" />
+  <title>Class Results & Analytics | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+    }
+
+    .layout {
+      display: flex;
+      flex: 1;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      width: 230px;
+      background: var(--color-surface);
+      border-right: 1px solid var(--color-border);
+      padding: 1.25rem 0;
+      flex-shrink: 0;
+      position: sticky;
+      top: 57px;
+      height: calc(100vh - 57px);
+      overflow-y: auto;
+    }
+    .side-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 .75rem; }
+    .side-nav a {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+      padding: .6rem .875rem;
+      border-radius: var(--radius-md);
+      color: var(--color-muted);
+      font-size: .875rem;
+      font-weight: 500;
+      text-decoration: none;
+      transition: all var(--t-fast);
+    }
+    .side-nav a:hover { background: var(--color-bg); color: var(--color-primary); }
+    .side-nav a.active { background: #eff6ff; color: var(--color-accent); }
+    .side-nav .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
+
+    /* ── Main ── */
+    .main {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1000px;
+    }
+
+    /* ── Breadcrumb ── */
+    .breadcrumb {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      color: var(--color-muted);
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Header ── */
+    .test-header-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem 1.75rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .test-header-info h1 {
+      font-size: 1.6rem;
+      margin-bottom: .3rem;
+    }
+
+    .test-header-sub {
+      font-size: .875rem;
+      color: var(--color-muted);
+    }
+
+    .test-code-chip {
+      background: #eff6ff;
+      color: var(--color-accent);
+      font-weight: 700;
+      font-family: monospace;
+      padding: .2rem .6rem;
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+    }
+
+    /* ── Overview Stats Row ── */
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .stat-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .stat-icon { font-size: 1.75rem; }
+    .stat-value { font-size: 1.5rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: .75rem; color: var(--color-muted); margin-top: 2px; }
+
+    /* ── Performance Visualization Card ── */
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .analytics-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-title-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+      padding-bottom: .75rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .card-title {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    /* Distribution CSS Bar Chart */
+    .dist-chart {
+      display: flex;
+      flex-direction: column;
+      gap: .875rem;
+    }
+
+    .dist-row {
+      display: flex;
+      align-items: center;
+      gap: .875rem;
+      font-size: .85rem;
+    }
+
+    .dist-label {
+      width: 80px;
+      font-weight: 600;
+      color: var(--color-muted);
+      font-size: .78rem;
+    }
+
+    .dist-bar-track {
+      flex: 1;
+      height: 12px;
+      background: var(--color-bg);
+      border-radius: 9999px;
+      overflow: hidden;
+      border: 1px solid var(--color-border);
+    }
+
+    .dist-bar-fill {
+      height: 100%;
+      border-radius: 9999px;
+      transition: width .6s ease;
+    }
+
+    .dist-count {
+      width: 44px;
+      text-align: right;
+      font-weight: 700;
+      font-size: .85rem;
+    }
+
+    /* Question Performance Bars */
+    .q-perf-list {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+    }
+
+    .q-perf-item {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      font-size: .85rem;
+    }
+
+    .q-perf-name {
+      width: 32px;
+      font-weight: 700;
+      color: var(--color-muted);
+    }
+
+    .q-perf-text {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      font-size: .8rem;
+    }
+
+    .q-perf-pct {
+      font-weight: 700;
+      min-width: 42px;
+      text-align: right;
+    }
+
+    /* ── Student Attempts Table ── */
+    .table-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .table-container {
+      overflow-x: auto;
+    }
+
+    .attempts-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+      font-size: .9rem;
+    }
+
+    .attempts-table th {
+      background: var(--color-bg);
+      color: var(--color-muted);
+      font-weight: 700;
+      font-size: .75rem;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .attempts-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+    }
+
+    .attempts-table tbody tr {
+      transition: background var(--t-fast);
+      cursor: pointer;
+    }
+
+    .attempts-table tbody tr:hover {
+      background: #eff6ff;
+    }
+
+    .student-cell {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .student-avatar {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: .85rem;
+      flex-shrink: 0;
+    }
+
+    .student-name {
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+
+    .status-pill {
+      display: inline-block;
+      font-size: .72rem;
+      font-weight: 700;
+      padding: .2rem .6rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .status-graded { background: #d1fae5; color: #065f46; }
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-help { background: #fee2e2; color: #991b1b; }
+
+    /* Modal Detail View */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--t-fast);
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: var(--color-surface);
+      border-radius: var(--radius-2xl);
+      padding: 2rem;
+      max-width: 540px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="teacher.html">Teacher Portal</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <div class="layout">
+      <!-- ── Sidebar ── -->
+      <aside class="sidebar">
+        <nav class="side-nav">
+          <a href="teacher.html"><span class="nav-icon">🏠</span> Dashboard</a>
+          <a href="teacher-create.html"><span class="nav-icon">➕</span> Create Test</a>
+          <a href="#" class="active"><span class="nav-icon">📊</span> Test Results</a>
+          <a href="#"><span class="nav-icon">👩‍🎓</span> Students</a>
+          <a href="#"><span class="nav-icon">⚙️</span> Settings</a>
+        </nav>
+      </aside>
+
+      <!-- ── Main Content ── -->
+      <main class="main page-enter">
+        <!-- Breadcrumb -->
+        <div class="breadcrumb">
+          <a href="teacher.html">← Dashboard</a>
+          <span>/</span>
+          <span>Test Results</span>
+        </div>
+
+        <!-- Header Card -->
+        <div class="test-header-card">
+          <div class="test-header-info">
+            <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.3rem;">
+              <span class="badge badge-neutral">Biology</span>
+              <span class="test-code-chip">GEM-472</span>
+            </div>
+            <h1>Introduction to Photosynthesis</h1>
+            <p class="test-header-sub">Published Jul 30, 2026 &middot; 8 Questions &middot; 21 Total Marks</p>
+          </div>
+
+          <div style="display:flex; gap:.75rem;">
+            <button class="btn btn-secondary btn-sm" onclick="showToast('Exporting class results to CSV...')">
+              📥 Export CSV
+            </button>
+            <a href="teacher-create.html" class="btn btn-primary btn-sm">
+              + New Assessment
+            </a>
+          </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="stats-row">
+          <div class="stat-card">
+            <span class="stat-icon">👩‍🎓</span>
+            <div>
+              <div class="stat-value" id="stat-total-students">28</div>
+              <div class="stat-label">Total Students</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📈</span>
+            <div>
+              <div class="stat-value" id="stat-avg-score">74%</div>
+              <div class="stat-label">Average Score</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🏆</span>
+            <div>
+              <div class="stat-value" style="color: var(--color-success);" id="stat-high-score">95%</div>
+              <div class="stat-label">Highest Score</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🎯</span>
+            <div>
+              <div class="stat-value" id="stat-pass-rate">89%</div>
+              <div class="stat-label">Pass Rate</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Analytics Visualizations -->
+        <div class="analytics-grid">
+          <!-- Score Distribution -->
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <span class="card-title">Score Distribution</span>
+              <span class="badge badge-neutral">28 Submissions</span>
+            </div>
+            <div class="dist-chart">
+              <div class="dist-row">
+                <span class="dist-label">90–100%</span>
+                <div class="dist-bar-track">
+                  <div class="dist-bar-fill" style="width: 35%; background: #10b981;"></div>
+                </div>
+                <span class="dist-count">10 std</span>
+              </div>
+              <div class="dist-row">
+                <span class="dist-label">75–89%</span>
+                <div class="dist-bar-track">
+                  <div class="dist-bar-fill" style="width: 42%; background: #2563eb;"></div>
+                </div>
+                <span class="dist-count">12 std</span>
+              </div>
+              <div class="dist-row">
+                <span class="dist-label">60–74%</span>
+                <div class="dist-bar-track">
+                  <div class="dist-bar-fill" style="width: 14%; background: #f59e0b;"></div>
+                </div>
+                <span class="dist-count">4 std</span>
+              </div>
+              <div class="dist-row">
+                <span class="dist-label">&lt; 60%</span>
+                <div class="dist-bar-track">
+                  <div class="dist-bar-fill" style="width: 7%; background: #ef4444;"></div>
+                </div>
+                <span class="dist-count">2 std</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Question Accuracy -->
+          <div class="analytics-card">
+            <div class="card-title-row">
+              <span class="card-title">Question Accuracy Rate</span>
+              <span class="badge badge-gemma">Gemma Analytics</span>
+            </div>
+            <div class="q-perf-list">
+              <div class="q-perf-item">
+                <span class="q-perf-name">Q1</span>
+                <span class="q-perf-text">Primary pigment in photosynthesis</span>
+                <div class="dist-bar-track" style="height:8px;">
+                  <div class="dist-bar-fill" style="width: 96%; background: #10b981;"></div>
+                </div>
+                <span class="q-perf-pct" style="color: #10b981;">96%</span>
+              </div>
+              <div class="q-perf-item">
+                <span class="q-perf-name">Q2</span>
+                <span class="q-perf-text">ATP consumed in Calvin cycle</span>
+                <div class="dist-bar-track" style="height:8px;">
+                  <div class="dist-bar-fill" style="width: 68%; background: #f59e0b;"></div>
+                </div>
+                <span class="q-perf-pct" style="color: #f59e0b;">68%</span>
+              </div>
+              <div class="q-perf-item">
+                <span class="q-perf-name">Q6</span>
+                <span class="q-perf-text">Photorespiration impact</span>
+                <div class="dist-bar-track" style="height:8px;">
+                  <div class="dist-bar-fill" style="width: 52%; background: #ef4444;"></div>
+                </div>
+                <span class="q-perf-pct" style="color: #ef4444;">52%</span>
+              </div>
+              <div class="q-perf-item">
+                <span class="q-perf-name">Q8</span>
+                <span class="q-perf-text">C3 vs C4 structural adaptations</span>
+                <div class="dist-bar-track" style="height:8px;">
+                  <div class="dist-bar-fill" style="width: 60%; background: #f59e0b;"></div>
+                </div>
+                <span class="q-perf-pct" style="color: #f59e0b;">60%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Student Attempts Table -->
+        <div class="table-card">
+          <div class="card-title-row">
+            <span class="card-title">Student Submissions &amp; Attempts</span>
+            <input type="text" id="table-search" placeholder="🔍 Search student..." oninput="filterTable(this.value)" style="padding:.4rem .75rem; border-radius:var(--radius-md); border:1px solid var(--color-border); font-size:.85rem;" />
+          </div>
+
+          <div class="table-container">
+            <table class="attempts-table">
+              <thead>
+                <tr>
+                  <th>Student</th>
+                  <th>Score</th>
+                  <th>Percentage</th>
+                  <th>Submitted</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="attempts-table-body">
+                <!-- Rendered by JS -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Student Detail Modal -->
+  <div class="modal-overlay" id="student-modal">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1.3rem;" id="m-student-name">Aryan Mehta</h2>
+        <span class="badge badge-gemma">Gemma Evaluated</span>
+      </div>
+      <div style="background:var(--color-bg); padding:1rem; border-radius:var(--radius-lg); border:1px solid var(--color-border); margin-bottom:1.25rem;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem;">
+          <span style="font-size:.85rem; color:var(--color-muted);">Final Score:</span>
+          <strong id="m-score">17 / 21 (81%)</strong>
+        </div>
+        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem;">
+          <span style="font-size:.85rem; color:var(--color-muted);">Submission Time:</span>
+          <span id="m-time" style="font-size:.85rem; font-weight:600;">Jul 30, 10:45 AM</span>
+        </div>
+        <div style="display:flex; justify-content:space-between;">
+          <span style="font-size:.85rem; color:var(--color-muted);">Status:</span>
+          <span class="status-pill status-graded" id="m-status">Graded</span>
+        </div>
+      </div>
+
+      <p style="font-size:.875rem; color:var(--color-muted); margin-bottom:1.5rem;">
+        Click below to inspect full question-by-question responses and AI breakdown.
+      </p>
+
+      <div style="display:flex; gap:.75rem; justify-content:flex-end;">
+        <button class="btn btn-secondary" onclick="closeStudentModal()">Close</button>
+        <a id="m-view-link" href="student-results.html" class="btn btn-primary">Open Detailed Results →</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    /* ── Mock Student Attempts Data ── */
+    const ATTEMPTS = [
+      { id: 1, name: 'Rohan Das', score: 20, maxScore: 21, pct: 95, time: 'Jul 30, 10:12 AM', status: 'Graded', statusCls: 'status-graded' },
+      { id: 2, name: 'Aryan Mehta', score: 17, maxScore: 21, pct: 81, time: 'Jul 30, 10:45 AM', status: 'Graded', statusCls: 'status-graded' },
+      { id: 3, name: 'Karan Joshi', score: 18, maxScore: 21, pct: 86, time: 'Jul 30, 11:02 AM', status: 'Graded', statusCls: 'status-graded' },
+      { id: 4, name: 'Priya Nair', score: 16, maxScore: 21, pct: 76, time: 'Jul 30, 11:20 AM', status: 'Graded', statusCls: 'status-graded' },
+      { id: 5, name: 'Ananya Sharma', score: 19, maxScore: 21, pct: 90, time: 'Jul 30, 11:35 AM', status: 'Graded', statusCls: 'status-graded' },
+      { id: 6, name: 'Sneha Iyer', score: 13, maxScore: 21, pct: 62, time: 'Jul 30, 11:50 AM', status: 'Needs Help', statusCls: 'status-help' },
+      { id: 7, name: 'Vikram Rao', score: 15, maxScore: 21, pct: 71, time: 'Jul 30, 12:05 PM', status: 'Pending Review', statusCls: 'status-pending' },
+      { id: 8, name: 'Neha Gupta', score: 20, maxScore: 21, pct: 95, time: 'Jul 30, 12:18 PM', status: 'Graded', statusCls: 'status-graded' },
+    ];
+
+    window.addEventListener('DOMContentLoaded', () => {
+      renderTable(ATTEMPTS);
+    });
+
+    function renderTable(data) {
+      const tbody = document.getElementById('attempts-table-body');
+      tbody.innerHTML = '';
+
+      data.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.onclick = () => openStudentModal(item);
+
+        tr.innerHTML = `
+          <td>
+            <div class="student-cell">
+              <div class="student-avatar">${item.name[0]}</div>
+              <span class="student-name">${item.name}</span>
+            </div>
+          </td>
+          <td style="font-weight: 700;">${item.score} / ${item.maxScore}</td>
+          <td>
+            <div style="display:flex; align-items:center; gap:.5rem;">
+              <div class="progress-wrap" style="width:70px; height:6px;">
+                <div class="progress-bar" style="width: ${item.pct}%;"></div>
+              </div>
+              <span style="font-weight:700; font-size:.85rem;">${item.pct}%</span>
+            </div>
+          </td>
+          <td style="color: var(--color-muted); font-size:.85rem;">${item.time}</td>
+          <td><span class="status-pill ${item.statusCls}">${item.status}</span></td>
+          <td>
+            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openStudentModalDirect('${encodeURIComponent(item.name)}')">
+              View
+            </button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function filterTable(query) {
+      const q = query.toLowerCase();
+      const filtered = ATTEMPTS.filter(a => a.name.toLowerCase().includes(q));
+      renderTable(filtered);
+    }
+
+    function openStudentModal(item) {
+      document.getElementById('m-student-name').textContent = item.name;
+      document.getElementById('m-score').textContent = `${item.score} / ${item.maxScore} (${item.pct}%)`;
+      document.getElementById('m-time').textContent = item.time;
+      document.getElementById('m-status').textContent = item.status;
+      document.getElementById('m-status').className = `status-pill ${item.statusCls}`;
+
+      document.getElementById('m-view-link').href = `student-results.html?name=${encodeURIComponent(item.name)}&code=GEM-472`;
+      document.getElementById('student-modal').classList.add('active');
+    }
+
+    function openStudentModalDirect(name) {
+      window.location.href = `student-results.html?name=${name}&code=GEM-472`;
+    }
+
+    function closeStudentModal() {
+      document.getElementById('student-modal').classList.remove('active');
+    }
+  </script>
+</body>
+</html>

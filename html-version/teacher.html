@@ -277,18 +277,20 @@
     const pgEl = document.getElementById('published-grid');
     TESTS.filter(t => t.status === 'published').forEach(t => {
       pgEl.innerHTML += `
-        <div class="card card-hover published-card">
-          <div class="pub-top">
-            <span class="badge badge-neutral">${t.subject}</span>
-            <span class="pub-date">${t.date}</span>
+        <a href="teacher-results.html" style="text-decoration:none; color:inherit;">
+          <div class="card card-hover published-card">
+            <div class="pub-top">
+              <span class="badge badge-neutral">${t.subject}</span>
+              <span class="pub-date">${t.date}</span>
+            </div>
+            <div class="pub-title">${t.title}</div>
+            <div class="pub-meta">
+              <span>👩‍🎓 ${t.students} students</span>
+              <span>📊 Avg: ${t.avg}%</span>
+            </div>
+            <div class="progress-wrap"><div class="progress-bar" style="width:${t.avg}%"></div></div>
           </div>
-          <div class="pub-title">${t.title}</div>
-          <div class="pub-meta">
-            <span>👩‍🎓 ${t.students} students</span>
-            <span>📊 Avg: ${t.avg}%</span>
-          </div>
-          <div class="progress-wrap"><div class="progress-bar" style="width:${t.avg}%"></div></div>
-        </div>`;
+        </a>`;
     });
   </script>
 </body>
