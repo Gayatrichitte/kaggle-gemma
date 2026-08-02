@@ -181,6 +181,9 @@
         <button class="btn btn-primary" id="copy-btn" onclick="doCopy()">
           <span class="btn-icon">⎘</span> Copy Code
         </button>
+        <button class="btn btn-secondary" onclick="printPublishedQuestionPaper()" style="border:1px solid var(--color-accent); color:var(--color-accent); font-weight:700;">
+          <span class="btn-icon">🖨️</span> Print Question Paper
+        </button>
         <a href="student-test.html?code=GEM-472&name=Teacher%20Preview" class="btn btn-secondary" id="preview-link">
           <span class="btn-icon">👁</span> Preview Test
         </a>
@@ -333,6 +336,102 @@
       setTimeout(() => {
         window.location.href = 'teacher.html';
       }, 600);
+    };
+
+    window.printPublishedQuestionPaper = function() {
+      const title = activeTest ? activeTest.title : 'Assessment Paper';
+      const subject = activeTest ? activeTest.subject : 'General';
+      const duration = activeTest ? activeTest.duration : 30;
+      const questions = activeTest && activeTest.questions ? activeTest.questions : [];
+      let totalMarks = questions.reduce((sum, q) => sum + (q.marks || 2), 0);
+      if (totalMarks === 0) totalMarks = activeTest ? activeTest.marks : 20;
+
+      let html = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:1rem; margin-bottom:1.5rem;">
+          <h1 style="font-size:1.6rem; text-transform:uppercase; margin-bottom:0.25rem; font-weight:800; color:#000;">${title}</h1>
+          <div style="font-size:0.95rem; font-weight:600; color:#333; margin-bottom:0.5rem;">Subject: ${subject} &middot; Test Code: ${TEST_CODE}</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; border-top:1px solid #000; padding-top:0.5rem; margin-top:0.5rem;">
+            <span>⏱ Time Allowed: ${duration} Minutes</span>
+            <span>💯 Maximum Marks: ${totalMarks} Marks</span>
+          </div>
+        </div>
+
+        <div style="border:1px solid #000; padding:0.75rem 1rem; font-size:0.85rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+          <div><strong>Student Name:</strong> ___________________________</div>
+          <div><strong>Roll No / ID:</strong> ______________</div>
+          <div><strong>Date:</strong> ______________</div>
+        </div>
+
+        <div style="font-size:0.85rem; font-style:italic; margin-bottom:1.5rem; background:#f8fafc; padding:0.5rem 0.75rem; border-left:3px solid #000;">
+          <strong>General Instructions:</strong> Read all questions carefully before answering. Write answers clearly.
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+      `;
+
+      if (questions.length === 0) {
+        html += `<div style="text-align:center; padding:2rem; color:#666;">No questions attached to this assessment code.</div>`;
+      } else {
+        questions.forEach((q, i) => {
+          html += `
+            <div style="page-break-inside:avoid; border-bottom:1px dashed #cbd5e1; padding-bottom:1rem;">
+              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.95rem; margin-bottom:0.35rem; color:#000;">
+                <span>Q${i + 1}. ${q.question}</span>
+                <span style="font-size:0.85rem; color:#333;">[${q.marks || 2} Marks]</span>
+              </div>
+          `;
+
+          if (q.type === 'MCQ' && q.options && q.options.length > 0) {
+            html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem; font-size:0.9rem; padding-left:1rem;">`;
+            q.options.forEach((opt, optIdx) => {
+              const letter = String.fromCharCode(65 + optIdx);
+              html += `<div><strong>(${letter})</strong> ${opt}</div>`;
+            });
+            html += `</div>`;
+          } else if (q.type === 'TF' || q.type === 'True/False') {
+            html += `
+              <div style="display:flex; gap:2.5rem; margin-top:0.5rem; font-size:0.9rem; padding-left:1rem;">
+                <div>[ &nbsp; ] True</div>
+                <div>[ &nbsp; ] False</div>
+              </div>
+            `;
+          } else {
+            html += `
+              <div style="margin-top:0.75rem; border-bottom:1px solid #94a3b8; height:24px; margin-left:1rem;"></div>
+              <div style="margin-top:0.5rem; border-bottom:1px solid #94a3b8; height:24px; margin-left:1rem;"></div>
+            `;
+          }
+
+          html += `</div>`;
+        });
+      }
+
+      html += `</div>`;
+
+      const printWindow = window.open('', '_blank', 'width=850,height=950');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${title} - Question Paper</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 2rem; color: #000; background: #fff; line-height: 1.5; }
+            @media print {
+              body { padding: 0; margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     };
   </script>
 </body>

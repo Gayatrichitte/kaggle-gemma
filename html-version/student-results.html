@@ -339,11 +339,14 @@
 <body>
   <div class="page">
     <nav class="navbar">
-      <a href="index.html" class="navbar-brand">EduMetric</a>
+      <div class="navbar-brand-group">
+        <div class="navbar-brand-icon">⚡</div>
+        <a href="index.html" class="navbar-brand">Edu<span>Metric</span></a>
+      </div>
       <div class="navbar-links">
         <a href="student.html">Student Portal</a>
         <a href="teacher.html">Teacher Portal</a>
-        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+        <span class="badge badge-gemma">Gemma 2 IT</span>
       </div>
     </nav>
 
@@ -370,8 +373,9 @@
             <div class="score-pct-badge" id="res-score-pct">0% Score</div>
           </div>
 
-          <div class="stats-breakdown-grid">
+          <div class="stats-breakdown-grid" style="grid-template-columns: repeat(4, 1fr);">
             <div class="stat-pill-card">
+<<<<<<< HEAD
               <span class="stat-pill-count" style="color: var(--color-success);" id="stat-correct">0</span>
               <span class="stat-pill-label">Correct</span>
             </div>
@@ -382,6 +386,22 @@
             <div class="stat-pill-card">
               <span class="stat-pill-count" style="color: var(--color-accent);" id="stat-rank">#1</span>
               <span class="stat-pill-label">Status</span>
+=======
+              <span class="stat-pill-count" style="color: var(--color-success);" id="stat-correct">--</span>
+              <span class="stat-pill-label">Correct</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: var(--color-error);" id="stat-incorrect">--</span>
+              <span class="stat-pill-label">Incorrect</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: #475569; font-size: 1.25rem;" id="stat-time-taken">⏱️ --</span>
+              <span class="stat-pill-label">Time Taken</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-card-rank" style="font-size:1.5rem; font-weight:800; color: var(--color-accent);" id="stat-rank">#--</span>
+              <span class="stat-pill-label">Leaderboard Rank</span>
+>>>>>>> 78ab33a (Remove hardcoded mock data, add test time tracking and marks+time leaderboard tie-breaker)
             </div>
           </div>
         </div>
@@ -427,6 +447,7 @@
 
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
+<<<<<<< HEAD
 
   <script type="module">
     import { db, doc, getDoc, ensureFirebaseAuth } from "./firebase-config.js";
@@ -509,9 +530,362 @@
       }
 
       // Render Itemized Questions Breakdown
+=======
+  <script>
+    /* ── Mock Evaluated Questions Data ── */
+    const EVALUATED_QUESTIONS = [
+      {
+        id: 1,
+        type: 'MCQ',
+        difficulty: 'Easy',
+        maxMarks: 2,
+        earnedMarks: 2,
+        status: 'correct',
+        question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
+        userAnswer: 'Chlorophyll',
+        correctAnswer: 'Chlorophyll',
+        isAiEvaluated: false,
+        explanation: 'Chlorophyll absorbs blue and red wavelengths of light while reflecting green light, making it the primary photosynthetic pigment.'
+      },
+      {
+        id: 2,
+        type: 'MCQ',
+        difficulty: 'Hard',
+        maxMarks: 3,
+        earnedMarks: 3,
+        status: 'correct',
+        question: 'In the Calvin cycle, how many ATP molecules are consumed per CO₂ molecule fixed?',
+        userAnswer: '3',
+        correctAnswer: '3',
+        isAiEvaluated: false,
+        explanation: 'The Calvin cycle uses 2 ATP molecules in the reduction stage and 1 ATP molecule in the regeneration of RuBP, totaling 3 ATP per fixed CO₂.'
+      },
+      {
+        id: 3,
+        type: 'True/False',
+        difficulty: 'Easy',
+        maxMarks: 1,
+        earnedMarks: 1,
+        status: 'correct',
+        question: 'The light-dependent reactions of photosynthesis occur in the stroma of the chloroplast.',
+        userAnswer: 'False',
+        correctAnswer: 'False',
+        isAiEvaluated: false,
+        explanation: 'Light-dependent reactions occur within the thylakoid membranes. The stroma is the site of light-independent reactions (Calvin cycle).'
+      },
+      {
+        id: 4,
+        type: 'True/False',
+        difficulty: 'Easy',
+        maxMarks: 1,
+        earnedMarks: 0,
+        status: 'incorrect',
+        question: 'Oxygen is released as a by-product of the light-dependent reactions.',
+        userAnswer: 'False',
+        correctAnswer: 'True',
+        isAiEvaluated: false,
+        explanation: 'Photolysis of water during light reactions splits H₂O molecules, releasing oxygen gas (O₂) into the atmosphere.'
+      },
+      {
+        id: 5,
+        type: 'One-liner',
+        difficulty: 'Medium',
+        maxMarks: 2,
+        earnedMarks: 2,
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--color-muted);
+      margin-bottom: .25rem;
+    }
+
+    .ans-val {
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    .q-explanation-box {
+      background: #f8fafc;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: .75rem 1rem;
+      font-size: .85rem;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .explanation-title {
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: .25rem;
+    }
+
+    /* Actions Footer */
+    .results-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="student.html">Student Portal</a>
+        <a href="teacher.html">Teacher Portal</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <div class="results-container page-enter">
+      <!-- ── Header Score Card ── -->
+      <div class="results-header-card">
+        <div class="header-top">
+          <div class="test-info">
+            <span class="badge badge-gemma" style="margin-bottom: .5rem;">Kaggle Gemma Evaluation</span>
+            <h1 id="res-test-title">Introduction to Photosynthesis</h1>
+            <p class="student-meta">
+              Student: <strong id="res-student-name">Aryan Mehta</strong> &middot; Code: <strong id="res-test-code">GEM-472</strong> &middot; Date: <strong>Jul 30, 2026</strong>
+            </p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="window.print()">
+            🖨️ Print Results
+          </button>
+        </div>
+
+        <div class="score-overview-grid">
+          <div class="score-radial-box">
+            <div class="score-num" id="res-score-num">17 / 21</div>
+            <div class="score-total">Total Marks</div>
+            <div class="score-pct-badge" id="res-score-pct">81% Score</div>
+          </div>
+
+          <div class="stats-breakdown-grid" style="grid-template-columns: repeat(4, 1fr);">
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: var(--color-success);" id="stat-correct">--</span>
+              <span class="stat-pill-label">Correct</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: var(--color-error);" id="stat-incorrect">--</span>
+              <span class="stat-pill-label">Incorrect</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: #475569; font-size: 1.25rem;" id="stat-time-taken">⏱️ --</span>
+              <span class="stat-pill-label">Time Taken</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-card-rank" style="font-size:1.5rem; font-weight:800; color: var(--color-accent);" id="stat-rank">#--</span>
+              <span class="stat-pill-label">Leaderboard Rank</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Gemma Assessment Insight ── -->
+      <div class="gemma-insight-card">
+        <div class="insight-header">
+          <div class="insight-title-group">
+            <div class="gemma-orb" style="width: 24px; height: 24px;"></div>
+            <span class="insight-title">Gemma Assessment Insight</span>
+          </div>
+          <span class="badge badge-gemma">AI Learning Report</span>
+        </div>
+        <div class="insight-body">
+          <p id="insight-text">
+            Aryan demonstrated strong foundational understanding of <strong>Light-Dependent Reactions</strong> and basic chloroplast components. However, analysis highlights minor conceptual gaps in <strong>Photorespiration efficiency</strong> and energy molecule counts in the <strong>Calvin Cycle (C3 vs C4 pathways)</strong>.
+          </p>
+          <div class="insight-tags">
+            <span class="insight-tag tag-strong">✓ Strong: Chlorophyll &amp; Light Reactions</span>
+            <span class="insight-tag tag-weak">⚠️ Needs Review: Photorespiration &amp; RuBisCO</span>
+            <span class="insight-tag tag-weak">⚠️ Needs Review: C3 / C4 Pathway Differences</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Question-by-Question Review ── -->
+      <div class="review-section-title">
+        <span>Question Breakdown &amp; Feedback</span>
+        <span style="font-size: .85rem; font-weight: 500; color: var(--color-muted);" id="q-total-count">8 Questions Reviewed</span>
+      </div>
+
+      <div id="questions-review-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- ── Actions ── -->
+      <div class="results-actions">
+        <a href="leaderboard.html" class="btn btn-primary">🏆 View Live Leaderboard →</a>
+        <a href="student.html" class="btn btn-secondary">Back to Student Portal</a>
+        <a href="index.html" class="btn btn-ghost">Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    /* ── Mock Evaluated Questions Data ── */
+    const EVALUATED_QUESTIONS = [
+      {
+        id: 1,
+        type: 'MCQ',
+        difficulty: 'Easy',
+        maxMarks: 2,
+        earnedMarks: 2,
+        status: 'correct',
+        question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
+        userAnswer: 'Chlorophyll',
+        correctAnswer: 'Chlorophyll',
+        isAiEvaluated: false,
+        explanation: 'Chlorophyll absorbs blue and red wavelengths of light while reflecting green light, making it the primary photosynthetic pigment.'
+      },
+      {
+        id: 2,
+        type: 'MCQ',
+        difficulty: 'Hard',
+        maxMarks: 3,
+        earnedMarks: 3,
+        status: 'correct',
+        question: 'In the Calvin cycle, how many ATP molecules are consumed per CO₂ molecule fixed?',
+        userAnswer: '3',
+        correctAnswer: '3',
+        isAiEvaluated: false,
+        explanation: 'The Calvin cycle uses 2 ATP molecules in the reduction stage and 1 ATP molecule in the regeneration of RuBP, totaling 3 ATP per fixed CO₂.'
+      },
+      {
+        id: 3,
+        type: 'True/False',
+        difficulty: 'Easy',
+        maxMarks: 1,
+        earnedMarks: 1,
+        status: 'correct',
+        question: 'The light-dependent reactions of photosynthesis occur in the stroma of the chloroplast.',
+        userAnswer: 'False',
+        correctAnswer: 'False',
+        isAiEvaluated: false,
+        explanation: 'Light-dependent reactions occur within the thylakoid membranes. The stroma is the site of light-independent reactions (Calvin cycle).'
+      },
+      {
+        id: 4,
+        type: 'True/False',
+        difficulty: 'Easy',
+        maxMarks: 1,
+        earnedMarks: 0,
+        status: 'incorrect',
+        question: 'Oxygen is released as a by-product of the light-dependent reactions.',
+        userAnswer: 'False',
+        correctAnswer: 'True',
+        isAiEvaluated: false,
+        explanation: 'Photolysis of water during light reactions splits H₂O molecules, releasing oxygen gas (O₂) into the atmosphere.'
+      },
+      {
+        id: 5,
+        type: 'One-liner',
+        difficulty: 'Medium',
+        maxMarks: 2,
+        earnedMarks: 2,
+        status: 'correct',
+        question: 'What is the primary role of NADPH in the Calvin cycle?',
+        userAnswer: 'NADPH provides reducing power and high-energy electrons to reduce 3-PGA into G3P.',
+        correctAnswer: 'Provides electrons/reducing power to convert 3-PGA to G3P.',
+        isAiEvaluated: true,
+        explanation: 'Gemma Evaluation: Full credit. The student correctly identified both electron transfer (reducing power) and the specific substrate conversion.'
+      },
+      {
+        id: 6,
+        type: 'Brief Answer',
+        difficulty: 'Hard',
+        maxMarks: 5,
+        earnedMarks: 3,
+        status: 'partial',
+        question: 'Explain the significance of photorespiration and its impact on plant photosynthetic efficiency.',
+        userAnswer: 'Photorespiration happens when RuBisCO reacts with oxygen instead of carbon dioxide, which wastes energy.',
+        correctAnswer: 'RuBisCO fixes O₂ instead of CO₂, releasing fixed carbon and consuming ATP without producing sugar, reducing net carbon fixation efficiency by up to 25%.',
+        isAiEvaluated: true,
+        explanation: 'Gemma Evaluation: Partial credit (3/5). Correctly noted RuBisCO oxygenation and energy waste, but omitted quantitative impact on carbon fixation yield and environmental triggers.'
+      }
+    ];
+  </script>
+
+  <script type="module">
+    import { db, collection, getDocs } from "./firebase-config.js";
+
+    /* ── Render Logic ── */
+    window.addEventListener('DOMContentLoaded', async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Student';
+      const code = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
+
+      document.getElementById('res-student-name').textContent = name;
+      document.getElementById('res-test-code').textContent = code;
+
+      await loadStudentAttemptDetails(name, code);
+      renderQuestionsReview();
+    });
+
+    async function loadStudentAttemptDetails(name, code) {
+      let resultsArr = [];
+      try {
+        const localStr = localStorage.getItem('ea_results');
+        if (localStr) {
+          const parsed = JSON.parse(localStr);
+          if (Array.isArray(parsed)) resultsArr = [...parsed];
+        }
+      } catch (e) {}
+
+      try {
+        const resultsRef = collection(db, "results");
+        const querySnapshot = await getDocs(resultsRef);
+        querySnapshot.forEach((docSnap) => {
+          const item = { id: docSnap.id, ...docSnap.data() };
+          const idx = resultsArr.findIndex(x => x.id === item.id || (x.studentName === item.studentName && x.testCode === item.testCode && x.submittedAt === item.submittedAt));
+          if (idx >= 0) resultsArr[idx] = item;
+          else resultsArr.push(item);
+        });
+      } catch (e) {}
+
+      // Filter by test code
+      const codeResults = resultsArr.filter(r => !code || r.testCode === code || code === 'ALL');
+
+      // Sort by score desc, time taken asc
+      codeResults.sort((a, b) => {
+        const scoreA = Number(a.score ?? 0);
+        const scoreB = Number(b.score ?? 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+
+        const timeA = a.timeTakenSeconds !== undefined ? Number(a.timeTakenSeconds) : 999999;
+        const timeB = b.timeTakenSeconds !== undefined ? Number(b.timeTakenSeconds) : 999999;
+        return timeA - timeB;
+      });
+
+      // Find current student's attempt
+      const studentIdx = codeResults.findIndex(r => r.studentName && r.studentName.toLowerCase() === name.toLowerCase());
+      if (studentIdx >= 0) {
+        const myResult = codeResults[studentIdx];
+        const rankNum = studentIdx + 1;
+
+        document.getElementById('res-score-num').textContent = `${myResult.score} / ${myResult.maxScore || 20}`;
+        document.getElementById('res-score-pct').textContent = `${myResult.percentage}% Score`;
+        document.getElementById('stat-correct').textContent = myResult.correctCount ?? myResult.answeredCount ?? 0;
+        document.getElementById('stat-incorrect').textContent = Math.max(0, (myResult.totalQuestions || 8) - (myResult.correctCount || 0));
+        document.getElementById('stat-time-taken').textContent = `⏱️ ${myResult.timeTakenFormatted || (myResult.timeTakenSeconds ? myResult.timeTakenSeconds + 's' : 'N/A')}`;
+        document.getElementById('stat-rank').textContent = `#${rankNum}`;
+      } else {
+        document.getElementById('stat-time-taken').textContent = `⏱️ N/A`;
+        document.getElementById('stat-rank').textContent = `#--`;
+      }
+    }
+
+    function renderQuestionsReview() {
+>>>>>>> 78ab33a (Remove hardcoded mock data, add test time tracking and marks+time leaderboard tie-breaker)
       const container = document.getElementById('questions-review-list');
+      if (!container) return;
       container.innerHTML = '';
 
+<<<<<<< HEAD
       const items = resultObj.itemizedDetails || [];
       document.getElementById('q-total-count').textContent = `${items.length} Questions Reviewed`;
 
@@ -522,6 +896,19 @@
         const statusClass = item.isCorrect ? 'status-correct' : 'status-incorrect';
         const statusText = item.isCorrect ? 'Correct' : 'Incorrect';
         const ansBoxClass = item.isCorrect ? 'ans-box-correct' : 'ans-box-incorrect';
+=======
+      EVALUATED_QUESTIONS.forEach((q, i) => {
+        const card = document.createElement('div');
+        card.className = 'q-review-card';
+
+        let statusBadgeClass = 'status-correct';
+        let statusText = 'Correct';
+        if (q.status === 'incorrect') { statusBadgeClass = 'status-incorrect'; statusText = 'Incorrect'; }
+        else if (q.status === 'partial') { statusBadgeClass = 'status-partial'; statusText = 'Partial Credit'; }
+
+        const aiBadgeHtml = q.isAiEvaluated ? `<span class="badge-gemma-eval">🤖 Evaluated by Gemma</span>` : '';
+        const ansBoxClass = q.status === 'correct' ? 'ans-box-correct' : q.status === 'incorrect' ? 'ans-box-incorrect' : 'ans-box';
+>>>>>>> 78ab33a (Remove hardcoded mock data, add test time tracking and marks+time leaderboard tie-breaker)
 
         card.innerHTML = `
           <div class="q-review-header">
@@ -554,6 +941,12 @@
         `;
         container.appendChild(card);
       });
+<<<<<<< HEAD
+=======
+
+      const totalCountElem = document.getElementById('q-total-count');
+      if (totalCountElem) totalCountElem.textContent = `${EVALUATED_QUESTIONS.length} Questions Reviewed`;
+>>>>>>> 78ab33a (Remove hardcoded mock data, add test time tracking and marks+time leaderboard tie-breaker)
     }
   </script>
 </body>

@@ -6,7 +6,7 @@ const NVIDIA_API_KEY = "nvapi-DNZnQtRip6REOYC79c39tnm6aUtgLKBvFX_YmHdZym46kAxps3
 /**
  * Calls NVIDIA Gemma AI to generate MCQ and True/False questions based on syllabus/topic content
  */
-export async function generateQuestionsWithGemma({ title, subject = "General", textContent, mcqCount = 5, tfCount = 0, totalMarks = 20 }) {
+export async function generateQuestionsWithGemma({ title, subject = "General", textContent, mcqCount = 5, tfCount = 0, totalMarks = 20, isTopicBased = false }) {
   let requirements = [];
   if (mcqCount > 0) {
     requirements.push(`Generate exactly ${mcqCount} Multiple Choice Questions (MCQ) with "type": "MCQ", 4 options in "options", and exact correct answer in "answer".`);
@@ -18,7 +18,39 @@ export async function generateQuestionsWithGemma({ title, subject = "General", t
     requirements.push(`Generate 5 Multiple Choice Questions.`);
   }
 
-  const prompt = `You are an expert educational test generator powered by Google Gemma AI.
+  const isTopicMode = isTopicBased || !textContent || textContent.length < 200 || !textContent.includes('\n');
+
+  const prompt = isTopicMode ? `You are an expert educational test generator powered by Google Gemma AI.
+Generate a comprehensive assessment using your extensive internal knowledge database for the topic/subject:
+
+TEST TITLE: ${title}
+SUBJECT / TOPIC: ${subject}
+KEY TOPIC DETAILS / SUBTOPICS: ${textContent || title}
+
+REQUIREMENTS:
+${requirements.map((r, i) => `${i + 1}. ${r}`).join('\n')}
+${requirements.length + 1}. Output MUST be ONLY a raw JSON array matching this structure without any markdown wrap or commentary:
+
+[
+  {
+    "id": 1,
+    "type": "MCQ",
+    "question": "Sample multiple choice question about ${subject}?",
+    "options": ["Option A", "Option B", "Option C", "Option D"],
+    "answer": "Option A",
+    "marks": 2,
+    "difficulty": "Medium"
+  },
+  {
+    "id": 2,
+    "type": "TF",
+    "question": "Sample true/false statement about ${subject}.",
+    "options": ["True", "False"],
+    "answer": "True",
+    "marks": 2,
+    "difficulty": "Easy"
+  }
+]` : `You are an expert educational test generator powered by Google Gemma AI.
 Generate a high quality assessment based STRICTLY on the following content:
 
 TEST TITLE: ${title}

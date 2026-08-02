@@ -565,9 +565,11 @@
     let timerInterval = null;
     let currentStudentName = 'Student';
     let currentTestCode = 'GEM-472';
+    let testStartTime = Date.now();
 
     /* ── Init ── */
     window.addEventListener('DOMContentLoaded', async () => {
+      testStartTime = Date.now();
       const urlParams = new URLSearchParams(window.location.search);
       currentStudentName = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Student';
       currentTestCode = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
@@ -891,12 +893,19 @@
         summaryCard.parentNode.insertBefore(reviewBox, summaryCard.nextSibling);
       }
 
+      // Calculate time taken
+      const timeTakenSeconds = Math.max(1, Math.round((Date.now() - testStartTime) / 1000));
+      const mins = Math.floor(timeTakenSeconds / 60);
+      const secs = timeTakenSeconds % 60;
+      const timeTakenFormatted = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
       // Save Student Result in Firebase Firestore under student folder & results collection
       const sanitizedStudentName = currentStudentName.replace(/[^a-zA-Z0-9_-]/g, '_');
       const timestamp = Date.now();
       const resultId = `${currentTestCode}_${sanitizedStudentName}_${timestamp}`;
 
       const resultObj = {
+        id: resultId,
         resultId: resultId,
         testCode: currentTestCode,
         studentName: currentStudentName,
@@ -906,17 +915,24 @@
         score: totalMarksObtained,
         maxScore: maxPossibleMarks,
         percentage: percentage,
+        timeTakenSeconds: timeTakenSeconds,
+        timeTakenFormatted: timeTakenFormatted,
         userAnswers: userAnswers,
         itemizedDetails: itemizedDetails,
         submittedAt: new Date().toISOString()
       };
 
       // Save to localStorage
-      const existingResultsStr = localStorage.getItem('ea_student_results');
-      let allResults = existingResultsStr ? JSON.parse(existingResultsStr) : [];
-      allResults.unshift(resultObj);
-      localStorage.setItem('ea_student_results', JSON.stringify(allResults));
-      sessionStorage.setItem('ea_last_result', JSON.stringify(resultObj));
+      try {
+        const existingResultsStr = localStorage.getItem('ea_student_results') || localStorage.getItem('ea_results');
+        let allResults = existingResultsStr ? JSON.parse(existingResultsStr) : [];
+        allResults.unshift(resultObj);
+        localStorage.setItem('ea_student_results', JSON.stringify(allResults));
+        localStorage.setItem('ea_results', JSON.stringify(allResults));
+        sessionStorage.setItem('ea_last_result', JSON.stringify(resultObj));
+      } catch (err) {
+        console.warn("LocalStorage result save error:", err);
+      }
 
       // Save to Firebase Firestore under results collection AND students folder
       try {
