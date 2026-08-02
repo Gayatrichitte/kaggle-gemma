@@ -284,18 +284,24 @@
           <!-- Dual Option Selector Cards -->
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
             <!-- Option A Card -->
-            <div id="card-opt-pdf" class="card card-hover" onclick="selectSourceMode('pdf')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-accent); background:#eff6ff; border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease;">
-              <div style="font-size:2.2rem; margin-bottom:0.5rem;">📄</div>
-              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem;">Option A: Upload Syllabus PDF</div>
-              <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Upload your PDF syllabus document to extract text directly.</p>
-            </div>
+            <label id="card-opt-pdf" class="card card-hover" onclick="selectSourceMode('pdf')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-accent); background:#eff6ff; border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease; display:block;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <span style="font-size:1.8rem;">📄</span>
+                <input type="radio" name="source_mode" id="radio-opt-pdf" value="pdf" checked onchange="selectSourceMode('pdf')" style="width:18px; height:18px; cursor:pointer;" />
+              </div>
+              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem; text-align:left;">Option A: Upload Syllabus PDF</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin:0; text-align:left;">Upload your PDF syllabus document to extract text directly.</p>
+            </label>
 
             <!-- Option B Card -->
-            <div id="card-opt-topic" class="card card-hover" onclick="selectSourceMode('topic')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-border); background:var(--color-surface); border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease;">
-              <div style="font-size:2.2rem; margin-bottom:0.5rem;">✨</div>
-              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem;">Option B: Subject / Topic Details</div>
-              <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Enter a topic name to generate questions using Gemma's AI database.</p>
-            </div>
+            <label id="card-opt-topic" class="card card-hover" onclick="selectSourceMode('topic')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-border); background:var(--color-surface); border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease; display:block;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
+                <span style="font-size:1.8rem;">✨</span>
+                <input type="radio" name="source_mode" id="radio-opt-topic" value="topic" onchange="selectSourceMode('topic')" style="width:18px; height:18px; cursor:pointer;" />
+              </div>
+              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem; text-align:left;">Option B: Subject / Topic Details</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin:0; text-align:left;">Enter a topic name to generate questions using Gemma's AI database.</p>
+            </label>
           </div>
 
           <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.5rem; margin-bottom:1.5rem;">
@@ -504,23 +510,25 @@
       testDetails.inputMode = mode;
       const cardPdf = document.getElementById('card-opt-pdf');
       const cardTopic = document.getElementById('card-opt-topic');
+      const radioPdf = document.getElementById('radio-opt-pdf');
+      const radioTopic = document.getElementById('radio-opt-topic');
       const secPdf = document.getElementById('sec-opt-pdf');
       const secTopic = document.getElementById('sec-opt-topic');
 
       if (mode === 'pdf') {
-        cardPdf.style.border = '2px solid var(--color-accent)';
-        cardPdf.style.background = '#eff6ff';
-        cardTopic.style.border = '2px solid var(--color-border)';
-        cardTopic.style.background = 'var(--color-surface)';
-        secPdf.style.display = 'block';
-        secTopic.style.display = 'none';
+        if (radioPdf) radioPdf.checked = true;
+        if (radioTopic) radioTopic.checked = false;
+        if (cardPdf) { cardPdf.style.border = '2px solid var(--color-accent)'; cardPdf.style.background = '#eff6ff'; }
+        if (cardTopic) { cardTopic.style.border = '2px solid var(--color-border)'; cardTopic.style.background = 'var(--color-surface)'; }
+        if (secPdf) secPdf.style.display = 'block';
+        if (secTopic) secTopic.style.display = 'none';
       } else {
-        cardTopic.style.border = '2px solid var(--color-accent)';
-        cardTopic.style.background = '#eff6ff';
-        cardPdf.style.border = '2px solid var(--color-border)';
-        cardPdf.style.background = 'var(--color-surface)';
-        secTopic.style.display = 'block';
-        secPdf.style.display = 'none';
+        if (radioTopic) radioTopic.checked = true;
+        if (radioPdf) radioPdf.checked = false;
+        if (cardTopic) { cardTopic.style.border = '2px solid var(--color-accent)'; cardTopic.style.background = '#eff6ff'; }
+        if (cardPdf) { cardPdf.style.border = '2px solid var(--color-border)'; cardPdf.style.background = 'var(--color-surface)'; }
+        if (secTopic) secTopic.style.display = 'block';
+        if (secPdf) secPdf.style.display = 'none';
       }
       validateStep1();
     };
