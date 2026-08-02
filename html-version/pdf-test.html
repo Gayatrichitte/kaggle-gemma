@@ -114,17 +114,22 @@
       <form id="pdf-form">
         <div class="form-group">
           <label class="form-label" for="test-name">Test Name / Title *</label>
-          <input type="text" id="test-name" class="form-input" placeholder="e.g. Organic Chemistry Chapter 1" required />
+          <input type="text" id="test-name" class="form-input" placeholder="e.g. Organic Chemistry Chapter 1" required oninput="checkFormValid()" />
         </div>
 
-        <div class="form-group">
-          <label class="form-label">Upload Syllabus PDF File *</label>
+        <div style="background:var(--color-bg); border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.5rem; margin-bottom:1.5rem;">
+          <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.75rem;">Option A: Upload Syllabus PDF</div>
           <div class="drop-zone" onclick="document.getElementById('pdf-file').click()">
             <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">📑</div>
             <div style="font-weight: 600;">Click to select or drop PDF file</div>
             <div style="font-size: 0.8rem; color: var(--color-muted); margin-top: 0.25rem;" id="file-status">PDF documents supported</div>
           </div>
           <input type="file" id="pdf-file" accept="application/pdf" style="display: none;" onchange="handlePdfUpload(event)" />
+
+          <div style="text-align:center; font-weight:800; color:var(--color-accent); margin:1.25rem 0; letter-spacing:0.1em;">─── OR ───</div>
+
+          <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.5rem;">Option B: Subject / Topic Details</div>
+          <textarea id="topic-details" class="text-preview" style="height:90px;" placeholder="Enter topic name or subject details (e.g. Photosynthesis, Light-dependent reactions, Calvin cycle, RuBisCO)..." oninput="checkFormValid()"></textarea>
         </div>
 
         <div class="form-group" id="preview-group" style="display: none;">
@@ -168,6 +173,13 @@
     let extractedPdfText = "";
     let generatedMcqs = [];
 
+    window.checkFormValid = function() {
+      const name = document.getElementById('test-name').value.trim();
+      const topic = document.getElementById('topic-details').value.trim();
+      const btn = document.getElementById('generate-btn');
+      btn.disabled = !(name.length > 0 && (extractedPdfText.length > 0 || topic.length > 0));
+    };
+
     window.handlePdfUpload = async function(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -190,7 +202,7 @@
         document.getElementById('extracted-text').value = extractedPdfText;
         document.getElementById('preview-group').style.display = 'block';
         document.getElementById('file-status').textContent = `✅ Successfully extracted ${pdf.numPages} page(s) (${extractedPdfText.length} chars)`;
-        document.getElementById('generate-btn').disabled = false;
+        checkFormValid();
       } catch (err) {
         console.error("PDF Parsing error:", err);
         showToast("Error parsing PDF file: " + err.message);
@@ -203,20 +215,23 @@
       e.preventDefault();
 
       const testName = document.getElementById('test-name').value.trim();
-      if (!testName || !extractedPdfText) {
-        showToast("Please provide both Test Name and a valid PDF upload.");
+      const topicText = document.getElementById('topic-details').value.trim();
+      const promptContent = (extractedPdfText || topicText || testName).trim();
+
+      if (!testName || !promptContent) {
+        showToast("Please provide Test Name and either a PDF upload or topic details.");
         return;
       }
 
       const generateBtn = document.getElementById('generate-btn');
       generateBtn.disabled = true;
-      generateBtn.textContent = "⏳ Gemma AI is reading PDF & generating MCQs...";
+      generateBtn.textContent = "⏳ Gemma AI is processing & generating MCQs...";
 
       const resultCard = document.getElementById('result-card');
       resultCard.style.display = 'block';
       
       const statusContainer = document.getElementById('status-container');
-      statusContainer.innerHTML = `<div class="status-badge" style="background:#eff6ff; color:#2563eb;">Sending extracted PDF text to NVIDIA Gemma API...</div>`;
+      statusContainer.innerHTML = `<div class="status-badge" style="background:#eff6ff; color:#2563eb;">Sending content to NVIDIA Gemma API...</div>`;
 
       document.getElementById('questions-list').innerHTML = '';
 
@@ -224,8 +239,8 @@
         // Send request to Gemma API strictly requesting MCQ questions
         generatedMcqs = await generateQuestionsWithGemma({
           title: testName,
-          subject: "PDF Syllabus",
-          textContent: extractedPdfText,
+          subject: topicText || "General",
+          textContent: promptContent,
           mcqCount: 5,
           tfCount: 0,
           totalMarks: 20

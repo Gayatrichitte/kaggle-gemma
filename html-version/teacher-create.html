@@ -268,30 +268,24 @@
       </div>
 
       <div class="wizard-card">
-        <!-- ══════════════ STEP 1 – DETAILS & SYLLABUS ══════════════ -->
+        <!-- ══════════════ STEP 1 – DETAILS & TOPIC ══════════════ -->
         <div class="step-panel active" id="panel-0">
-          <h2 class="step-title">Enter Test Details &amp; Syllabus</h2>
-          <p class="step-desc">Enter your test title, subject, and syllabus topics. Upload a PDF or type syllabus notes directly.</p>
+          <h2 class="step-title">Enter Test Details</h2>
+          <p class="step-desc">Enter your test title, then upload a PDF <strong>OR</strong> enter subject/topic details below.</p>
 
           <div class="form-group">
             <label class="form-label" for="test-title-input">Test Title *</label>
-            <input type="text" id="test-title-input" class="form-input" placeholder="e.g. Unit 1: Cell Biology & Photosynthesis" oninput="validateStep1()" />
+            <input type="text" id="test-title-input" class="form-input" placeholder="e.g. Organic Chemistry Chapter 1 Assessment" oninput="validateStep1()" />
           </div>
 
-          <div class="form-group">
-            <label class="form-label" for="test-subject-input">Subject / Course Name *</label>
-            <input type="text" id="test-subject-input" class="form-input" placeholder="e.g. Biology" oninput="validateStep1()" />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Syllabus PDF File (Optional)</label>
+          <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.5rem; margin-bottom:1.5rem;">
+            <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.75rem;">Option A: Upload Syllabus PDF</div>
             <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
               <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
               <div id="drop-idle">
                 <div class="drop-icon">📂</div>
-                <p class="drop-text">Drag &amp; drop your syllabus PDF here</p>
-                <p class="drop-sub">or</p>
-                <button type="button" class="browse-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse File</button>
+                <p class="drop-text">Drag &amp; drop your syllabus PDF file here</p>
+                <p class="drop-sub">or click to browse</p>
               </div>
               <div id="drop-preview" style="display:none;width:100%;flex-direction:column;align-items:center;gap:.5rem">
                 <div style="font-size:2.5rem">📄</div>
@@ -303,14 +297,14 @@
                   <div class="progress-wrap" style="flex:1"><div class="progress-bar" id="upload-bar"></div></div>
                   <span class="upload-pct" id="upload-pct">0%</span>
                 </div>
-                <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ Uploaded</div>
+                <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ PDF Ready</div>
               </div>
             </div>
-          </div>
 
-          <div class="form-group">
-            <label class="form-label" for="syllabus-text-input">Syllabus Content / Key Topics *</label>
-            <textarea id="syllabus-text-input" class="form-textarea" rows="4" placeholder="Enter key topics, syllabus summary, or learning objectives (e.g. Light-dependent reactions, Calvin cycle, ATP synthesis, RuBisCO)..." oninput="validateStep1()"></textarea>
+            <div style="text-align:center; font-weight:800; color:var(--color-accent); margin:1.25rem 0; letter-spacing:0.1em;">─── OR ───</div>
+
+            <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.5rem;">Option B: Subject / Topic Details</div>
+            <textarea id="topic-details-input" class="form-textarea" rows="3" placeholder="Enter topic name or subject details (e.g. Photosynthesis, Light-dependent reactions, Calvin cycle, RuBisCO)..." oninput="validateStep1()"></textarea>
           </div>
 
           <div class="step-actions">
@@ -444,7 +438,7 @@
     let testDetails = {
       title: '',
       subject: '',
-      syllabusText: '',
+      topicDetails: '',
       fileContent: '',
       hasFile: false,
       selectedTypes: ['MCQ', 'TF'],
@@ -454,18 +448,17 @@
 
     let generatedQuestions = [];
 
-    // Step 1 Validation
+    // Step 1 Validation (Requires Title + (PDF OR Topic details))
     window.validateStep1 = function() {
       const title = document.getElementById('test-title-input').value.trim();
-      const subject = document.getElementById('test-subject-input').value.trim();
-      const syllabus = document.getElementById('syllabus-text-input').value.trim();
+      const topicInput = document.getElementById('topic-details-input').value.trim();
       const nextBtn = document.getElementById('step1-next');
 
-      if (title.length > 0 && subject.length > 0 && (syllabus.length > 0 || testDetails.hasFile)) {
+      if (title.length > 0 && (topicInput.length > 0 || testDetails.hasFile)) {
         nextBtn.disabled = false;
         testDetails.title = title;
-        testDetails.subject = subject;
-        testDetails.syllabusText = syllabus;
+        testDetails.topicDetails = topicInput;
+        testDetails.subject = topicInput ? topicInput.substring(0, 30) : title;
       } else {
         nextBtn.disabled = true;
       }
@@ -609,7 +602,8 @@
       gs0.classList.add('active');
       gs0.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
 
-      const fullContent = (testDetails.syllabusText + "\n" + testDetails.fileContent).trim();
+      // Send PDF text if available, otherwise send topic details text!
+      const contentToGenerate = (testDetails.fileContent || testDetails.topicDetails || testDetails.title).trim();
       const isMcq = testDetails.selectedTypes.includes('MCQ');
       const isTf = testDetails.selectedTypes.includes('TF') || testDetails.selectedTypes.includes('True/False');
 
@@ -629,10 +623,10 @@
       try {
         generatedQuestions = await generateQuestionsWithGemma({
           title: testDetails.title,
-          subject: testDetails.subject,
-          textContent: fullContent,
-          mcqCount: mcqCount > 0 ? mcqCount : 3,
-          tfCount: tfCount > 0 ? tfCount : 2,
+          subject: testDetails.subject || testDetails.title,
+          textContent: contentToGenerate,
+          mcqCount: mcqCount > 0 ? mcqCount : 5,
+          tfCount: tfCount,
           totalMarks: testDetails.totalMarks
         });
       } catch (err) {
