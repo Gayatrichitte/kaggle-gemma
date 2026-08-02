@@ -228,7 +228,7 @@
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
   <script type="module">
-    import { auth, signOut, db, collection, getDocs } from "./firebase-config.js";
+    import { auth, signOut, db, doc, deleteDoc, ensureFirebaseAuth } from "./firebase-config.js";
 
     // Update Teacher Name Display
     const userStr = localStorage.getItem('ea_user');
@@ -245,6 +245,41 @@
         }
       } catch (e) {}
     }
+
+    // Delete Test from LocalStorage and Firebase Firestore
+    window.deleteTest = async function(code, title, e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (!confirm(`Are you sure you want to delete test "${title}" (${code})? This action cannot be undone.`)) {
+        return;
+      }
+
+      // 1. Delete from localStorage
+      const testsStr = localStorage.getItem('ea_tests');
+      if (testsStr) {
+        try {
+          let tests = JSON.parse(testsStr);
+          tests = tests.filter(t => t.code !== code && t.title !== title);
+          localStorage.setItem('ea_tests', JSON.stringify(tests));
+        } catch (err) {}
+      }
+
+      // 2. Delete from Firebase Firestore
+      try {
+        await ensureFirebaseAuth();
+        const nameKey = (title || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        await deleteDoc(doc(db, "tests", code));
+        if (nameKey) {
+          await deleteDoc(doc(db, "tests", nameKey));
+          await deleteDoc(doc(db, "users", nameKey));
+        }
+        console.log(`✅ Test ${code} deleted from Firestore`);
+      } catch (err) {
+        console.warn("Firestore delete notice:", err);
+      }
+
+      showToast(`🗑 Test "${title}" deleted.`);
+      loadDashboardData();
+    };
 
     // Load Tests dynamically from localStorage
     function loadDashboardData() {
@@ -279,13 +314,17 @@
       } else {
         tests.slice(0, 5).forEach(t => {
           const badgeClass = t.status === 'published' ? 'badge-published' : 'badge-draft';
+          const safeTitle = (t.title || 'Test').replace(/'/g, "\\'");
           rtEl.innerHTML += `
-            <div class="test-item">
+            <div class="test-item" style="display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <div class="test-title">${t.title}</div>
-                <div class="test-meta">${t.subject} &middot; ${t.date || 'Recent'} &middot; Code: <strong>${t.code}</strong></div>
+                <div class="test-meta">${t.subject || 'General'} &middot; ${t.date || 'Recent'} &middot; Code: <strong>${t.code}</strong></div>
               </div>
-              <span class="badge ${badgeClass}">${t.status || 'published'}</span>
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <span class="badge ${badgeClass}">${t.status || 'published'}</span>
+                <button onclick="deleteTest('${t.code}', '${safeTitle}', event)" title="Delete Test" style="background:none; border:none; color:var(--color-danger, #ef4444); cursor:pointer; font-size:1.1rem; padding:0.25rem 0.5rem;">🗑</button>
+              </div>
             </div>`;
         });
       }
@@ -308,20 +347,19 @@
           </div>`;
       } else {
         publishedTests.forEach(t => {
+          const safeTitle = (t.title || 'Test').replace(/'/g, "\\'");
           pgEl.innerHTML += `
-            <a href="teacher-published.html?code=${encodeURIComponent(t.code)}" style="text-decoration:none; color:inherit;">
-              <div class="card card-hover published-card">
-                <div class="pub-top">
-                  <span class="badge badge-neutral">${t.subject}</span>
-                  <span class="pub-date">${t.date || 'Active'}</span>
-                </div>
-                <div class="pub-title">${t.title}</div>
-                <div class="pub-meta">
-                  <span>🔑 Code: <strong>${t.code}</strong></span>
-                  <span>⏱ ${t.duration || 30}m</span>
-                </div>
+            <div class="card card-hover published-card" style="position:relative; cursor:pointer;" onclick="window.location.href='teacher-published.html?code=${encodeURIComponent(t.code)}'">
+              <div class="pub-top">
+                <span class="badge badge-neutral">${t.subject || 'General'}</span>
+                <button onclick="deleteTest('${t.code}', '${safeTitle}', event)" title="Delete Test" style="background:none; border:none; color:var(--color-danger, #ef4444); cursor:pointer; font-size:1.1rem; margin-left:auto;">🗑</button>
               </div>
-            </a>`;
+              <div class="pub-title" style="margin-top:0.5rem;">${t.title}</div>
+              <div class="pub-meta" style="margin-top:0.75rem;">
+                <span>🔑 Code: <strong>${t.code}</strong></span>
+                <span>⏱ ${t.duration || 30}m</span>
+              </div>
+            </div>`;
         });
       }
     }

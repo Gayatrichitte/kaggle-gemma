@@ -181,9 +181,12 @@
         <button class="btn btn-primary" id="copy-btn" onclick="doCopy()">
           <span class="btn-icon">⎘</span> Copy Code
         </button>
-        <a href="student-test.html?code=GEM-472&name=Teacher%20Preview" class="btn btn-secondary">
+        <a href="student-test.html?code=GEM-472&name=Teacher%20Preview" class="btn btn-secondary" id="preview-link">
           <span class="btn-icon">👁</span> Preview Test
         </a>
+        <button class="btn btn-danger" onclick="deleteCurrentTest()" style="background:#dc2626; color:#fff; border:none; padding:0.6rem 1.2rem; border-radius:var(--radius-lg); font-weight:600; cursor:pointer;">
+          <span class="btn-icon">🗑</span> Delete Test
+        </button>
         <a href="teacher.html" class="btn btn-ghost">
           <span class="btn-icon">🏠</span> Go to Dashboard
         </a>
@@ -291,6 +294,46 @@
       const btn = document.getElementById('copy-btn');
       copyToClipboard(TEST_CODE, btn, '<span class="btn-icon">⎘</span> Copy Code');
     }
+  </script>
+
+  <script type="module">
+    import { db, doc, deleteDoc, ensureFirebaseAuth } from "./firebase-config.js";
+
+    window.deleteCurrentTest = async function() {
+      const testTitle = activeTest ? activeTest.title : 'this test';
+      if (!confirm(`Are you sure you want to delete "${testTitle}" (${TEST_CODE})? This action cannot be undone.`)) {
+        return;
+      }
+
+      // 1. Delete from localStorage
+      const testsStr = localStorage.getItem('ea_tests');
+      if (testsStr) {
+        try {
+          let tests = JSON.parse(testsStr);
+          tests = tests.filter(t => t.code !== TEST_CODE && t.title !== testTitle);
+          localStorage.setItem('ea_tests', JSON.stringify(tests));
+        } catch (e) {}
+      }
+
+      // 2. Delete from Firestore
+      try {
+        await ensureFirebaseAuth();
+        const nameKey = (testTitle || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+        await deleteDoc(doc(db, "tests", TEST_CODE));
+        if (nameKey) {
+          await deleteDoc(doc(db, "tests", nameKey));
+          await deleteDoc(doc(db, "users", nameKey));
+        }
+        console.log(`✅ Test ${TEST_CODE} deleted from Firestore`);
+      } catch (err) {
+        console.warn("Firestore delete notice:", err);
+      }
+
+      showToast(`🗑 Test "${testTitle}" deleted.`);
+      setTimeout(() => {
+        window.location.href = 'teacher.html';
+      }, 600);
+    };
   </script>
 </body>
 </html>
