@@ -552,91 +552,90 @@
 
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
-  <script>
+  <script type="module">
+    import { db, doc, getDoc } from "./firebase-config.js";
+
     /* ── Exam Questions Data ── */
-    const QUESTIONS = [
+    let QUESTIONS = [
       {
         id: 1,
         type: 'MCQ',
         difficulty: 'Easy',
         marks: 2,
         question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
-        options: ['Carotenoid', 'Chlorophyll', 'Xanthophyll', 'Anthocyanin']
+        options: ['Carotenoid', 'Chlorophyll', 'Xanthophyll', 'Anthocyanin'],
+        answer: 'Chlorophyll'
       },
       {
         id: 2,
-        type: 'MCQ',
-        difficulty: 'Hard',
-        marks: 3,
-        question: 'In the Calvin cycle, how many ATP molecules are consumed per CO₂ molecule fixed?',
-        options: ['1', '2', '3', '4']
-      },
-      {
-        id: 3,
         type: 'True/False',
         difficulty: 'Easy',
         marks: 1,
-        question: 'The light-dependent reactions of photosynthesis occur in the stroma of the chloroplast.',
-        options: ['True', 'False']
-      },
-      {
-        id: 4,
-        type: 'True/False',
-        difficulty: 'Easy',
-        marks: 1,
-        question: 'Oxygen is released as a by-product of the light-dependent reactions.',
-        options: ['True', 'False']
-      },
-      {
-        id: 5,
-        type: 'One-liner',
-        difficulty: 'Medium',
-        marks: 2,
-        question: 'What is the primary role of NADPH in the Calvin cycle?'
-      },
-      {
-        id: 6,
-        type: 'Brief Answer',
-        difficulty: 'Hard',
-        marks: 5,
-        question: 'Explain the significance of photorespiration and its impact on plant photosynthetic efficiency.'
-      },
-      {
-        id: 7,
-        type: 'MCQ',
-        difficulty: 'Medium',
-        marks: 2,
-        question: 'Which of the following organisms perform anoxygenic photosynthesis?',
-        options: ['Plants', 'Cyanobacteria', 'Purple sulfur bacteria', 'Algae']
-      },
-      {
-        id: 8,
-        type: 'Brief Answer',
-        difficulty: 'Hard',
-        marks: 5,
-        question: 'Compare and contrast the structural and biochemical adaptations of C3 and C4 plants.'
+        question: 'Oxygen is released as a by-product of the light-dependent reactions in photosynthesis.',
+        options: ['True', 'False'],
+        answer: 'True'
       }
     ];
 
     /* ── Exam State ── */
     let currentIndex = 0;
     let userAnswers = {}; // { questionId: answer }
-    let remainingSeconds = 15 * 60; // 15 minutes
+    let remainingSeconds = 15 * 60;
     let timerInterval = null;
+    let currentStudentName = 'Student';
+    let currentTestCode = 'GEM-472';
 
     /* ── Init ── */
-    window.addEventListener('DOMContentLoaded', () => {
-      // Get params or session storage
+    window.addEventListener('DOMContentLoaded', async () => {
       const urlParams = new URLSearchParams(window.location.search);
-      const studentName = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Aryan Mehta';
-      const testCode = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
+      currentStudentName = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Student';
+      currentTestCode = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
 
-      document.getElementById('student-display').textContent = `Student: ${studentName}`;
+      document.getElementById('student-display').textContent = `Student: ${currentStudentName}`;
+
+      // Load test details from Firebase Firestore
+      await loadTestFromFirebase(currentTestCode);
 
       startTimer();
       renderNavigator();
       renderQuestion(currentIndex);
     });
+
+    async function loadTestFromFirebase(code) {
+      try {
+        const docRef = doc(db, "tests", code);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+          const testData = docSnap.data();
+          if (testData.title) document.getElementById('test-title').textContent = testData.title;
+          if (testData.questions && testData.questions.length > 0) {
+            QUESTIONS = testData.questions;
+          }
+          if (testData.duration) {
+            remainingSeconds = testData.duration * 60;
+          }
+          console.log(`Loaded test ${code} from Firebase Firestore!`, testData);
+          return;
+        }
+      } catch (err) {
+        console.warn("Firestore fetch warning:", err);
+      }
+
+      // LocalStorage fallback
+      const testsStr = localStorage.getItem('ea_tests');
+      if (testsStr) {
+        try {
+          const tests = JSON.parse(testsStr);
+          const localTest = tests.find(t => t.code === code);
+          if (localTest) {
+            if (localTest.title) document.getElementById('test-title').textContent = localTest.title;
+            if (localTest.questions && localTest.questions.length > 0) QUESTIONS = localTest.questions;
+            if (localTest.duration) remainingSeconds = localTest.duration * 60;
+          }
+        } catch(e) {}
+      }
+    }
 
     /* ── Timer Logic ── */
     function startTimer() {
@@ -646,11 +645,11 @@
       timerInterval = setInterval(() => {
         remainingSeconds--;
 
-        const mins = Math.floor(remainingSeconds / 60);
-        const secs = remainingSeconds % 60;
+        const mins = Math.floor(Math.max(0, remainingSeconds) / 60);
+        const secs = Math.floor(Math.max(0, remainingSeconds) % 60);
         display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
 
-        if (remainingSeconds <= 180) { // Warning under 3 minutes
+        if (remainingSeconds <= 180) {
           pill.classList.add('timer-warning');
         }
 
@@ -686,7 +685,7 @@
     function updateProgress() {
       const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
       const total = QUESTIONS.length;
-      const pct = (answeredCount / total) * 100;
+      const pct = total > 0 ? (answeredCount / total) * 100 : 0;
 
       document.getElementById('progress-text').textContent = `${answeredCount} of ${total} Answered`;
       document.getElementById('header-progress-bar').style.width = `${pct}%`;
@@ -694,11 +693,12 @@
 
     /* ── Render Current Question ── */
     function renderQuestion(index) {
+      if (!QUESTIONS || QUESTIONS.length === 0) return;
       const q = QUESTIONS[index];
 
       document.getElementById('q-number-lbl').textContent = `Question ${index + 1} of ${QUESTIONS.length}`;
       document.getElementById('q-type-badge').textContent = q.type;
-      document.getElementById('q-marks-badge').textContent = `${q.marks} Mark${q.marks > 1 ? 's' : ''}`;
+      document.getElementById('q-marks-badge').textContent = `${q.marks || 2} Mark${(q.marks || 2) > 1 ? 's' : ''}`;
       document.getElementById('q-text-prompt').textContent = q.question;
 
       const inputContainer = document.getElementById('q-input-container');
@@ -710,7 +710,8 @@
         const optsDiv = document.createElement('div');
         optsDiv.className = 'options-container';
 
-        q.options.forEach((opt, i) => {
+        const optsList = q.options || ['Option A', 'Option B', 'Option C', 'Option D'];
+        optsList.forEach((opt, i) => {
           const letter = String.fromCharCode(65 + i);
           const isSelected = currentAnswer === opt;
 
@@ -741,21 +742,14 @@
           tfDiv.appendChild(card);
         });
         inputContainer.appendChild(tfDiv);
-      } else if (q.type === 'One-liner') {
+      } else {
         const input = document.createElement('input');
         input.type = 'text';
         input.className = 'text-answer-input';
-        input.placeholder = 'Type your concise answer here...';
+        input.placeholder = 'Type your answer here...';
         input.value = currentAnswer;
         input.oninput = (e) => saveTextAnswer(q.id, e.target.value);
         inputContainer.appendChild(input);
-      } else if (q.type === 'Brief Answer') {
-        const textarea = document.createElement('textarea');
-        textarea.className = 'textarea-answer';
-        textarea.placeholder = 'Write your detailed response here...';
-        textarea.value = currentAnswer;
-        textarea.oninput = (e) => saveTextAnswer(q.id, e.target.value);
-        inputContainer.appendChild(textarea);
       }
 
       // Update Nav buttons
@@ -766,45 +760,45 @@
     }
 
     /* ── Save Answers ── */
-    function selectOption(qId, val) {
+    window.selectOption = function(qId, val) {
       userAnswers[qId] = val;
       renderQuestion(currentIndex);
-    }
+    };
 
-    function saveTextAnswer(qId, val) {
+    window.saveTextAnswer = function(qId, val) {
       userAnswers[qId] = val;
       renderNavigator();
-    }
+    };
 
-    function clearCurrentAnswer() {
+    window.clearCurrentAnswer = function() {
       const q = QUESTIONS[currentIndex];
       delete userAnswers[q.id];
       renderQuestion(currentIndex);
       showToast('Answer cleared.');
-    }
+    };
 
     /* ── Navigation ── */
-    function goToQuestion(index) {
+    window.goToQuestion = function(index) {
       currentIndex = index;
       renderQuestion(currentIndex);
-    }
+    };
 
-    function nextQuestion() {
+    window.nextQuestion = function() {
       if (currentIndex < QUESTIONS.length - 1) {
         currentIndex++;
         renderQuestion(currentIndex);
       }
-    }
+    };
 
-    function prevQuestion() {
+    window.prevQuestion = function() {
       if (currentIndex > 0) {
         currentIndex--;
         renderQuestion(currentIndex);
       }
-    }
+    };
 
     /* ── Modal & Submission ── */
-    function promptSubmission() {
+    window.promptSubmission = function() {
       const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
       const unansweredCount = QUESTIONS.length - answeredCount;
 
@@ -812,34 +806,28 @@
       document.getElementById('modal-unanswered-count').textContent = unansweredCount;
 
       document.getElementById('submit-modal').classList.add('active');
-    }
+    };
 
-    function closeModal() {
+    window.closeModal = function() {
       document.getElementById('submit-modal').classList.remove('active');
-    }
+    };
 
-    function confirmSubmission() {
-      closeModal();
+    window.confirmSubmission = function() {
+      window.closeModal();
       clearInterval(timerInterval);
 
-      // Hide exam main & header
       document.getElementById('exam-main').style.display = 'none';
 
-      // Show completion screen
       const completion = document.getElementById('completion-screen');
       completion.style.display = 'flex';
 
-      const urlParams = new URLSearchParams(window.location.search);
-      const studentName = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Aryan Mehta';
-      const testCode = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
-
       const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
 
-      document.getElementById('summary-student-name').textContent = studentName;
-      document.getElementById('summary-test-code').textContent = testCode;
+      document.getElementById('summary-student-name').textContent = currentStudentName;
+      document.getElementById('summary-test-code').textContent = currentTestCode;
       document.getElementById('summary-total-q').textContent = QUESTIONS.length;
       document.getElementById('summary-answered-q').textContent = `${answeredCount} / ${QUESTIONS.length}`;
-    }
+    };
   </script>
 </body>
 </html>

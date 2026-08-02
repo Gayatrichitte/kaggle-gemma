@@ -429,6 +429,7 @@
   <script src="app.js"></script>
   <script type="module">
     import { db, doc, setDoc } from "./firebase-config.js";
+    import { generateQuestionsWithGemma } from "./gemma-api.js";
 
     // Load current teacher info
     const userStr = localStorage.getItem('ea_user');
@@ -443,8 +444,9 @@
       title: '',
       subject: '',
       syllabusText: '',
+      fileContent: '',
       hasFile: false,
-      selectedTypes: ['MCQ', 'TF', 'OL', 'BA'],
+      selectedTypes: ['MCQ', 'TF'],
       totalMarks: 20,
       duration: 30
     };
@@ -468,7 +470,7 @@
       }
     };
 
-    // File Upload handling
+    // File Upload handling with FileReader text extraction
     window.triggerFile = function() {
       if (!document.getElementById('drop-zone').classList.contains('done')) {
         document.getElementById('file-input').click();
@@ -489,7 +491,14 @@
       const prev = document.getElementById('drop-preview');
       prev.style.display = 'flex';
       document.getElementById('file-name').textContent = file.name;
-      document.getElementById('file-size').textContent = (file.size/1024).toFixed(1)+' KB · PDF';
+      document.getElementById('file-size').textContent = (file.size/1024).toFixed(1)+' KB · PDF/Doc';
+
+      // Read text content from uploaded file
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        testDetails.fileContent = evt.target.result || '';
+      };
+      reader.readAsText(file);
 
       const bar = document.getElementById('upload-bar');
       const pct = document.getElementById('upload-pct');
@@ -556,18 +565,18 @@
       testDetails.duration = parseInt(val);
     };
 
-    // Dynamic Question Generation Engine
-    window.startGeneration = function() {
+    // Gemma Dynamic Question Generation Engine
+    window.startGeneration = async function() {
       const checkedBoxes = document.querySelectorAll('.checkbox-grid input:checked');
       testDetails.selectedTypes = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-type'));
 
       if (testDetails.selectedTypes.length === 0) {
-        showToast('Please select at least one question type.');
+        showToast('Please select at least MCQ or True/False question types.');
         return;
       }
 
       document.getElementById('step-indicator').style.display = 'none';
-      document.getElementById('gemma-sub-text').textContent = `Crafting questions for ${testDetails.title}...`;
+      document.getElementById('gemma-sub-text').textContent = `Connecting to NVIDIA Gemma AI for ${testDetails.title}...`;
       showPanel('panel-gemma');
 
       const prog = document.getElementById('gemma-prog');
@@ -577,90 +586,65 @@
         el.classList.remove('active','done');
         el.querySelector('.gemma-step-icon').textContent = '○';
       });
-      prog.style.width = '0';
+      prog.style.width = '10%';
 
-      steps.forEach((id, i) => {
-        setTimeout(() => {
-          if (i > 0) {
-            const prev = document.getElementById(steps[i-1]);
-            prev.classList.remove('active'); prev.classList.add('done');
-            prev.querySelector('.gemma-step-icon').textContent = '✓';
-          }
-          const el = document.getElementById(id);
-          el.classList.add('active');
-          el.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
-          prog.style.width = ((i+1)/steps.length*100)+'%';
+      // Activate step 1
+      const gs0 = document.getElementById('gs-0');
+      gs0.classList.add('active');
+      gs0.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
 
-          if (i === steps.length - 1) {
-            setTimeout(() => {
-              el.classList.remove('active'); el.classList.add('done');
-              el.querySelector('.gemma-step-icon').textContent = '✓';
-              prog.style.width = '100%';
-              generateQuestionsFromUserInputs();
-              setTimeout(() => showReview(), 600);
-            }, 1200);
-          }
-        }, i * 1000);
-      });
+      const fullContent = (testDetails.syllabusText + "\n" + testDetails.fileContent).trim();
+      const isMcq = testDetails.selectedTypes.includes('MCQ');
+      const isTf = testDetails.selectedTypes.includes('TF') || testDetails.selectedTypes.includes('True/False');
+
+      const mcqCount = isMcq ? (isTf ? 3 : 5) : 0;
+      const tfCount = isTf ? (isMcq ? 2 : 5) : 0;
+
+      setTimeout(() => {
+        gs0.classList.remove('active'); gs0.classList.add('done');
+        gs0.querySelector('.gemma-step-icon').textContent = '✓';
+        const gs1 = document.getElementById('gs-1');
+        gs1.classList.add('active');
+        gs1.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
+        prog.style.width = '40%';
+      }, 800);
+
+      // Call Gemma API
+      try {
+        generatedQuestions = await generateQuestionsWithGemma({
+          title: testDetails.title,
+          subject: testDetails.subject,
+          textContent: fullContent,
+          mcqCount: mcqCount > 0 ? mcqCount : 3,
+          tfCount: tfCount > 0 ? tfCount : 2,
+          totalMarks: testDetails.totalMarks
+        });
+      } catch (err) {
+        console.error("Gemma generation notice:", err);
+      }
+
+      const gs1 = document.getElementById('gs-1');
+      gs1.classList.remove('active'); gs1.classList.add('done');
+      gs1.querySelector('.gemma-step-icon').textContent = '✓';
+      
+      const gs2 = document.getElementById('gs-2');
+      gs2.classList.add('active');
+      gs2.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
+      prog.style.width = '75%';
+
+      testDetails.calculatedMarks = generatedQuestions.reduce((sum, q) => sum + (q.marks || 2), 0);
+
+      setTimeout(() => {
+        gs2.classList.remove('active'); gs2.classList.add('done');
+        gs2.querySelector('.gemma-step-icon').textContent = '✓';
+        const gs3 = document.getElementById('gs-3');
+        gs3.classList.add('active');
+        gs3.querySelector('.gemma-step-icon').textContent = '✓';
+        prog.style.width = '100%';
+
+        setTimeout(() => showReview(), 500);
+      }, 600);
     };
-
-    function generateQuestionsFromUserInputs() {
-      const title = testDetails.title;
-      const subject = testDetails.subject;
-      const types = testDetails.selectedTypes;
-      const targetMarks = testDetails.totalMarks;
-
-      let qList = [];
-      let currentMarks = 0;
-      let idCounter = 1;
-
-      // Sample templates tailored to user subject & title
-      const mcqBank = [
-        { q: `Which core concept is central to ${title}?`, opts: ['Fundamental Principle', 'Secondary Process', 'Variable Constant', 'External Factor'], ans: 'Fundamental Principle', marks: 2, diff: 'Easy' },
-        { q: `What is the primary function of ${subject} mechanisms in ${title}?`, opts: ['Energy Transfer', 'Catalytic Reaction', 'Data Storage', 'Structural Balance'], ans: 'Energy Transfer', marks: 2, diff: 'Medium' },
-        { q: `In ${subject}, which factor directly influences ${title}?`, opts: ['Temperature & Pressure', 'Color & Volume', 'Static State', 'None of these'], ans: 'Temperature & Pressure', marks: 3, diff: 'Hard' }
-      ];
-
-      const tfBank = [
-        { q: `True or False: ${title} plays a essential role in ${subject}.`, ans: 'True', marks: 1, diff: 'Easy' },
-        { q: `True or False: All processes in ${subject} occur without energy expenditure.`, ans: 'False', marks: 1, diff: 'Easy' }
-      ];
-
-      const olBank = [
-        { q: `Define the primary objective of ${title} in one sentence.`, ans: `${title} provides essential foundational knowledge for ${subject}.`, marks: 2, diff: 'Medium' }
-      ];
-
-      const baBank = [
-        { q: `Explain the key steps involved in ${title} and discuss their significance in ${subject}.`, ans: `Key steps include initialization, processing, and evaluation, ensuring comprehensive performance in ${subject}.`, marks: 5, diff: 'Hard' }
-      ];
-
-      types.forEach(t => {
-        if (t === 'MCQ') {
-          mcqBank.forEach(item => {
-            qList.push({ id: idCounter++, type: 'MCQ', question: item.q, options: item.opts, answer: item.ans, marks: item.marks, difficulty: item.diff });
-            currentMarks += item.marks;
-          });
-        } else if (t === 'TF') {
-          tfBank.forEach(item => {
-            qList.push({ id: idCounter++, type: 'True/False', question: item.q, answer: item.ans, marks: item.marks, difficulty: item.diff });
-            currentMarks += item.marks;
-          });
-        } else if (t === 'OL') {
-          olBank.forEach(item => {
-            qList.push({ id: idCounter++, type: 'One-liner', question: item.q, answer: item.ans, marks: item.marks, difficulty: item.diff });
-            currentMarks += item.marks;
-          });
-        } else if (t === 'BA') {
-          baBank.forEach(item => {
-            qList.push({ id: idCounter++, type: 'Brief Answer', question: item.q, answer: item.ans, marks: item.marks, difficulty: item.diff });
-            currentMarks += item.marks;
-          });
-        }
-      });
-
-      generatedQuestions = qList;
-      testDetails.calculatedMarks = currentMarks;
-    }
 
     function showReview() {
       document.getElementById('step-indicator').style.display = '';
@@ -668,14 +652,14 @@
       showPanel('panel-2');
 
       document.getElementById('review-title').textContent = `Review Questions for ${testDetails.title}`;
-      document.getElementById('review-desc').innerHTML = `Gemma generated <strong>${generatedQuestions.length} questions</strong> worth <strong>${testDetails.calculatedMarks} marks</strong> for <strong>${testDetails.subject}</strong>.`;
+      document.getElementById('review-desc').innerHTML = `Gemma generated <strong>${generatedQuestions.length} questions</strong> worth <strong>${testDetails.calculatedMarks || testDetails.totalMarks} marks</strong> for <strong>${testDetails.subject}</strong>.`;
 
       renderSummary();
       renderQuestions();
     }
 
     function renderSummary() {
-      const types = ['MCQ','True/False','One-liner','Brief Answer'];
+      const types = ['MCQ','True/False'];
       const sumEl = document.getElementById('review-summary');
       sumEl.innerHTML = '';
       types.forEach(t => {
@@ -697,7 +681,7 @@
 
         let optionsHtml = '';
         if (q.type === 'MCQ') {
-          optionsHtml = q.options.map((opt, idx) => `
+          optionsHtml = (q.options || []).map((opt, idx) => `
             <div class="q-option${opt === q.answer ? ' correct' : ''}">
               <span class="q-opt-letter">${String.fromCharCode(65+idx)}</span>
               ${opt}
@@ -711,7 +695,7 @@
               ${v === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
             </div>`).join('');
         } else {
-          optionsHtml = `<div class="q-answer"><span class="q-answer-lbl">Sample Answer:</span>${q.answer}</div>`;
+          optionsHtml = `<div class="q-answer"><span class="q-answer-lbl">Correct Answer:</span>${q.answer}</div>`;
         }
 
         div.innerHTML = `
@@ -740,8 +724,12 @@
       renderQuestions();
     };
 
-    // Publish Test & Store in LocalStorage & Firestore
+    // Publish Test & Store in Firebase Firestore & LocalStorage
     window.publishTest = async function() {
+      const publishBtn = document.getElementById('publish-btn');
+      publishBtn.disabled = true;
+      publishBtn.textContent = 'Publishing to Firebase...';
+
       const testCode = 'GEM-' + Math.floor(100 + Math.random() * 900);
       const newTest = {
         id: Date.now(),
@@ -754,6 +742,7 @@
         questionsCount: generatedQuestions.length,
         status: 'published',
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        createdAt: new Date().toISOString(),
         studentsCount: 0,
         questions: generatedQuestions
       };
@@ -767,14 +756,15 @@
       // Save active published test info for confirmation screen
       sessionStorage.setItem('ea_published_test', JSON.stringify(newTest));
 
-      // Save to Firebase Firestore if online
+      // Save to Firebase Firestore Database
       try {
         await setDoc(doc(db, "tests", testCode), newTest);
+        console.log("Test stored successfully in Firebase Firestore:", testCode);
       } catch (e) {
-        console.warn("Firestore test save notice:", e);
+        console.warn("Firestore test save warning:", e);
       }
 
-      showToast('Test published successfully!');
+      showToast(`Test ${testCode} published & saved to Firebase!`);
       setTimeout(() => {
         window.location.href = `teacher-published.html?code=${testCode}`;
       }, 600);
