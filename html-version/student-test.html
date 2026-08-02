@@ -553,7 +553,7 @@
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
   <script type="module">
-    import { db, doc, getDoc } from "./firebase-config.js";
+    import { db, doc, getDoc, setDoc } from "./firebase-config.js";
 
     /* ── Exam Questions Data ── */
     let QUESTIONS = [
@@ -812,7 +812,7 @@
       document.getElementById('submit-modal').classList.remove('active');
     };
 
-    window.confirmSubmission = function() {
+    window.confirmSubmission = async function() {
       window.closeModal();
       clearInterval(timerInterval);
 
@@ -821,12 +821,47 @@
       const completion = document.getElementById('completion-screen');
       completion.style.display = 'flex';
 
+      let correctCount = 0;
+      let totalMarksObtained = 0;
+      let maxPossibleMarks = 0;
+
+      QUESTIONS.forEach(q => {
+        const qMarks = q.marks || 2;
+        maxPossibleMarks += qMarks;
+        if (userAnswers[q.id] && String(userAnswers[q.id]).trim().toLowerCase() === String(q.answer).trim().toLowerCase()) {
+          correctCount++;
+          totalMarksObtained += qMarks;
+        }
+      });
+
       const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
 
       document.getElementById('summary-student-name').textContent = currentStudentName;
       document.getElementById('summary-test-code').textContent = currentTestCode;
       document.getElementById('summary-total-q').textContent = QUESTIONS.length;
       document.getElementById('summary-answered-q').textContent = `${answeredCount} / ${QUESTIONS.length}`;
+
+      // Save Student Result to Firebase Firestore
+      const resultId = `${currentTestCode}_${currentStudentName.replace(/\s+/g, '_')}_${Date.now()}`;
+      const resultObj = {
+        testCode: currentTestCode,
+        studentName: currentStudentName,
+        totalQuestions: QUESTIONS.length,
+        answeredCount: answeredCount,
+        correctCount: correctCount,
+        score: totalMarksObtained,
+        maxScore: maxPossibleMarks,
+        percentage: maxPossibleMarks > 0 ? Math.round((totalMarksObtained / maxPossibleMarks) * 100) : 0,
+        userAnswers: userAnswers,
+        submittedAt: new Date().toISOString()
+      };
+
+      try {
+        await setDoc(doc(db, "results", resultId), resultObj);
+        console.log("Student test result persisted to Firebase Firestore:", resultId);
+      } catch (err) {
+        console.warn("Firestore result save notice:", err);
+      }
     };
   </script>
 </body>
