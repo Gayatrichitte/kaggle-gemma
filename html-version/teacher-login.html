@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Teacher Login – Education Analyzer" />
+  <title>Teacher Login | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .auth-container {
+      min-height: calc(100vh - 65px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      background: radial-gradient(circle at 50% 20%, rgba(37, 99, 235, 0.05) 0%, transparent 60%);
+    }
+
+    .auth-card {
+      width: 100%;
+      max-width: 440px;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: 2.25rem;
+      box-shadow: var(--shadow-lg);
+    }
+
+    .auth-header {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+
+    .auth-icon {
+      font-size: 2.75rem;
+      margin-bottom: 0.5rem;
+      display: inline-block;
+    }
+
+    .auth-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      margin-bottom: 0.25rem;
+    }
+
+    .auth-subtitle {
+      font-size: 0.875rem;
+      color: var(--color-muted);
+    }
+
+    .auth-tabs {
+      display: flex;
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 4px;
+      margin-bottom: 1.5rem;
+    }
+
+    .auth-tab {
+      flex: 1;
+      padding: 0.5rem;
+      text-align: center;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      border: none;
+      background: transparent;
+      border-radius: var(--radius-md);
+      transition: all var(--t-fast);
+    }
+
+    .auth-tab.active {
+      background: var(--color-surface);
+      color: var(--color-primary);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 0.4rem;
+    }
+
+    .form-input {
+      width: 100%;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.9rem;
+      font-family: inherit;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      color: var(--color-primary);
+      outline: none;
+      transition: border-color var(--t-fast), box-shadow var(--t-fast);
+    }
+
+    .form-input:focus {
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+    }
+
+    .error-alert {
+      display: none;
+      padding: 0.75rem 1rem;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: var(--radius-lg);
+      color: var(--color-error);
+      font-size: 0.85rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .submit-btn {
+      width: 100%;
+      padding: 0.75rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+    }
+
+    .auth-footer {
+      text-align: center;
+      margin-top: 1.5rem;
+      font-size: 0.825rem;
+      color: var(--color-muted);
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar">
+    <a href="index.html" class="navbar-brand">Education Analyzer</a>
+    <div class="navbar-links">
+      <a href="index.html">← Back to Home</a>
+      <span class="badge badge-gemma">✦ Powered by Gemma</span>
+    </div>
+  </nav>
+
+  <main class="auth-container page-enter">
+    <div class="auth-card">
+      <div class="auth-header">
+        <div class="auth-icon">👩‍🏫</div>
+        <h1 class="auth-title">Teacher Portal</h1>
+        <p class="auth-subtitle">Sign in to manage tests and evaluate students with Gemma AI</p>
+      </div>
+
+      <div class="auth-tabs">
+        <button type="button" class="auth-tab active" id="tab-login" onclick="switchTab('login')">Sign In</button>
+        <button type="button" class="auth-tab" id="tab-signup" onclick="switchTab('signup')">Create Account</button>
+      </div>
+
+      <div id="error-alert" class="error-alert"></div>
+
+      <form id="auth-form">
+        <div class="form-group" id="name-group" style="display: none;">
+          <label class="form-label" for="user-name">Full Name</label>
+          <input type="text" id="user-name" class="form-input" placeholder="e.g. Ms. Gayatri Chitte" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="user-email">Email / Gmail Address</label>
+          <input type="email" id="user-email" class="form-input" placeholder="teacher@school.edu" required />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="user-password">Password</label>
+          <input type="password" id="user-password" class="form-input" placeholder="••••••••" required />
+        </div>
+
+        <button type="submit" id="submit-btn" class="btn btn-primary submit-btn">
+          <span id="btn-text">Sign In to Portal →</span>
+          <div id="btn-spinner" class="spinner" style="display: none; width: 18px; height: 18px; border-width: 2px;"></div>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        Are you a student? <a href="student-login.html" style="font-weight: 600;">Go to Student Login</a>
+      </div>
+    </div>
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="app.js"></script>
+  <script type="module">
+    import { auth, db, signInWithEmailAndPassword, createUserWithEmailAndPassword, updateProfile, doc, setDoc } from "./firebase-config.js";
+
+    let currentMode = 'login';
+
+    window.switchTab = function(mode) {
+      currentMode = mode;
+      const loginTab = document.getElementById('tab-login');
+      const signupTab = document.getElementById('tab-signup');
+      const nameGroup = document.getElementById('name-group');
+      const btnText = document.getElementById('btn-text');
+      const errorAlert = document.getElementById('error-alert');
+
+      errorAlert.style.display = 'none';
+
+      if (mode === 'signup') {
+        loginTab.classList.remove('active');
+        signupTab.classList.add('active');
+        nameGroup.style.display = 'block';
+        btnText.textContent = 'Create Teacher Account →';
+      } else {
+        signupTab.classList.remove('active');
+        loginTab.classList.add('active');
+        nameGroup.style.display = 'none';
+        btnText.textContent = 'Sign In to Portal →';
+      }
+    };
+
+    const form = document.getElementById('auth-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const btnText = document.getElementById('btn-text');
+    const btnSpinner = document.getElementById('btn-spinner');
+    const errorAlert = document.getElementById('error-alert');
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('user-email').value.trim();
+      const password = document.getElementById('user-password').value;
+      const name = document.getElementById('user-name').value.trim();
+
+      errorAlert.style.display = 'none';
+      submitBtn.disabled = true;
+      btnText.style.display = 'none';
+      btnSpinner.style.display = 'inline-block';
+
+      try {
+        if (currentMode === 'signup') {
+          // Create Firebase Authentication User
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          if (name) {
+            await updateProfile(user, { displayName: name });
+          }
+
+          // Save user email & profile details into Firebase Firestore DB
+          try {
+            await setDoc(doc(db, "users", user.uid), {
+              uid: user.uid,
+              email: email,
+              name: name || 'Teacher',
+              role: 'teacher',
+              createdAt: new Date().toISOString(),
+              lastLogin: new Date().toISOString()
+            });
+          } catch (fsErr) {
+            console.warn("Firestore save warning (make sure Firestore is created in Firebase Console):", fsErr);
+          }
+
+          localStorage.setItem('ea_user', JSON.stringify({
+            uid: user.uid,
+            email: email,
+            name: name || 'Teacher',
+            role: 'teacher'
+          }));
+
+          showToast('Teacher account & email saved to Firebase!');
+          setTimeout(() => {
+            window.location.href = 'teacher.html';
+          }, 800);
+        } else {
+          // Sign In existing user
+          const userCredential = await signInWithEmailAndPassword(auth, email, password);
+          const user = userCredential.user;
+
+          // Update last login details in Firebase Firestore DB
+          try {
+            await setDoc(doc(db, "users", user.uid), {
+              email: user.email,
+              name: user.displayName || name || 'Teacher',
+              role: 'teacher',
+              lastLogin: new Date().toISOString()
+            }, { merge: true });
+          } catch (fsErr) {
+            console.warn("Firestore update warning:", fsErr);
+          }
+
+          localStorage.setItem('ea_user', JSON.stringify({
+            uid: user.uid,
+            email: user.email,
+            name: user.displayName || 'Teacher',
+            role: 'teacher'
+          }));
+
+          showToast('Signed in successfully!');
+          setTimeout(() => {
+            window.location.href = 'teacher.html';
+          }, 800);
+        }
+      } catch (error) {
+        console.error('Firebase Auth error:', error);
+        submitBtn.disabled = false;
+        btnText.style.display = 'inline-block';
+        btnSpinner.style.display = 'none';
+
+        let message = 'Authentication failed. Please check your credentials.';
+        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          message = 'Invalid email or password. Please try again.';
+        } else if (error.code === 'auth/email-already-in-use') {
+          message = 'An account with this email already exists. Try signing in.';
+        } else if (error.code === 'auth/weak-password') {
+          message = 'Password should be at least 6 characters long.';
+        } else if (error.code === 'auth/invalid-email') {
+          message = 'Please enter a valid email address.';
+        } else if (error.code === 'auth/operation-not-allowed') {
+          message = 'Email/Password sign-in is not enabled in Firebase Console. Please enable Email/Password provider under Authentication -> Sign-in method.';
+        }
+
+        errorAlert.textContent = message;
+        errorAlert.style.display = 'block';
+      }
+    });
+  </script>
+</body>
+</html>

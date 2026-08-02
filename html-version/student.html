@@ -111,7 +111,8 @@
     <nav class="navbar">
       <a href="index.html" class="navbar-brand">Education Analyzer</a>
       <div class="navbar-links">
-        <a href="index.html">Home</a>
+        <span id="student-user-display" style="font-size: 0.85rem; font-weight: 600; color: var(--color-primary);">🎓 Student</span>
+        <button id="logout-btn" class="btn btn-ghost btn-sm" style="display:none;">Sign Out</button>
         <span class="badge badge-gemma">✦ Powered by Gemma</span>
       </div>
     </nav>
@@ -186,6 +187,40 @@
       sessionStorage.setItem('testCode', code);
 
       window.location.href = `student-test.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
+    }
+  </script>
+  <script type="module">
+    import { auth, signOut } from "./firebase-config.js";
+
+    const userStr = localStorage.getItem('ea_user');
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u.name) {
+          const nameInput = document.getElementById('student-name');
+          if (nameInput) nameInput.value = u.name;
+          const displayEl = document.getElementById('student-user-display');
+          if (displayEl) displayEl.textContent = `🎓 ${u.name}`;
+          const logoutBtn = document.getElementById('logout-btn');
+          if (logoutBtn) logoutBtn.style.display = 'inline-flex';
+        }
+      } catch (err) {
+        console.error('User parse error:', err);
+      }
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          localStorage.removeItem('ea_user');
+          showToast('Signed out successfully');
+          setTimeout(() => { window.location.href = 'index.html'; }, 800);
+        } catch (err) {
+          console.error('Error signing out:', err);
+        }
+      });
     }
   </script>
 </body>

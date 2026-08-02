@@ -151,7 +151,8 @@
     <nav class="navbar">
       <a href="index.html" class="navbar-brand">Education Analyzer</a>
       <div class="navbar-links">
-        <a href="teacher.html">Teacher Portal</a>
+        <span id="teacher-user-display" style="font-size: 0.85rem; font-weight: 600; color: var(--color-primary);">👩‍🏫 Teacher</span>
+        <button id="logout-btn" class="btn btn-ghost btn-sm">Sign Out</button>
         <span class="badge badge-gemma">✦ Powered by Gemma</span>
       </div>
     </nav>
@@ -292,6 +293,34 @@
           </div>
         </a>`;
     });
+  </script>
+  <script type="module">
+    import { auth, signOut } from "./firebase-config.js";
+
+    const userStr = localStorage.getItem('ea_user');
+    if (userStr) {
+      const u = JSON.parse(userStr);
+      if (u.name) {
+        const welcomeHeading = document.querySelector('.welcome h1');
+        if (welcomeHeading) welcomeHeading.textContent = `Welcome back, ${u.name} 👋`;
+        const userDisplay = document.getElementById('teacher-user-display');
+        if (userDisplay) userDisplay.textContent = `👩‍🏫 ${u.name}`;
+      }
+    }
+
+    const logoutBtn = document.getElementById('logout-btn');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', async () => {
+        try {
+          await signOut(auth);
+          localStorage.removeItem('ea_user');
+          showToast('Signed out successfully');
+          setTimeout(() => { window.location.href = 'index.html'; }, 800);
+        } catch (err) {
+          console.error('Error signing out:', err);
+        }
+      });
+    }
   </script>
 </body>
 </html>
