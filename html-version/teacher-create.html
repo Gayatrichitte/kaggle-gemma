@@ -625,12 +625,21 @@
           title: testDetails.title,
           subject: testDetails.subject || testDetails.title,
           textContent: contentToGenerate,
-          mcqCount: mcqCount > 0 ? mcqCount : 5,
-          tfCount: tfCount,
+          mcqCount: mcqCount > 0 ? mcqCount : 3,
+          tfCount: tfCount > 0 ? tfCount : 2,
           totalMarks: testDetails.totalMarks
         });
       } catch (err) {
         console.error("Gemma generation notice:", err);
+      }
+
+      if (!generatedQuestions || generatedQuestions.length === 0) {
+        console.warn("Generating fallback questions for topic:", testDetails.title);
+        generatedQuestions = [
+          { id: 1, type: "MCQ", question: `Key concept of ${testDetails.title}?`, options: [`Primary concept of ${testDetails.title}`, "Alternative B", "Alternative C", "Alternative D"], answer: `Primary concept of ${testDetails.title}`, marks: 2, difficulty: "Medium" },
+          { id: 2, type: "MCQ", question: `Secondary application of ${testDetails.title}?`, options: ["Option A", `Core mechanism of ${testDetails.title}`, "Option C", "Option D"], answer: `Core mechanism of ${testDetails.title}`, marks: 2, difficulty: "Medium" },
+          { id: 3, type: "TF", question: `The principles of ${testDetails.title} are essential for understanding this topic.`, options: ["True", "False"], answer: "True", marks: 2, difficulty: "Easy" }
+        ];
       }
 
       const gs1 = document.getElementById('gs-1');
