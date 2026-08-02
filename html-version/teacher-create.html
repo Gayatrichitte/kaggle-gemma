@@ -414,13 +414,33 @@
           </div>
           <div class="review-summary" id="review-summary"></div>
           <div class="q-list" id="q-list"></div>
-          <div class="step-actions">
+          <div class="step-actions" style="display:flex; gap:0.75rem; flex-wrap:wrap; justify-content:flex-end;">
             <button class="btn btn-secondary" onclick="goToStep(1)">← Reconfigure</button>
+            <button class="btn btn-secondary" id="print-paper-btn" onclick="openPrintablePaperModal()" style="border: 1px solid var(--color-accent); color: var(--color-accent); font-weight: 700;">
+              🖨️ Printable Question Paper
+            </button>
             <button class="btn btn-primary" id="publish-btn" onclick="publishTest()">🚀 Publish Test</button>
           </div>
         </div>
       </div><!-- /wizard-card -->
     </div><!-- /wizard-body -->
+  </div>
+
+  <!-- ── Printable Question Paper Modal ── -->
+  <div class="modal-overlay" id="print-paper-modal" style="position:fixed; inset:0; background:rgba(15,23,42,0.6); backdrop-filter:blur(4px); display:flex; align-items:center; justify-content:center; z-index:1000; opacity:0; pointer-events:none; transition:opacity 0.2s ease;">
+    <div class="modal-box" style="background:#fff; border-radius:16px; padding:1.75rem; max-width:820px; width:95%; max-height:90vh; overflow-y:auto; box-shadow:0 20px 25px -5px rgba(0,0,0,0.1);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem; border-bottom:1px solid #e2e8f0; padding-bottom:0.75rem;">
+        <h2 style="font-size:1.3rem; color:var(--color-primary);">🖨️ Printable Question Paper Preview</h2>
+        <div style="display:flex; gap:0.5rem;">
+          <button class="btn btn-primary btn-sm" onclick="printQuestionPaper()">🖨️ Print / Save as PDF</button>
+          <button class="btn btn-secondary btn-sm" onclick="closePrintablePaperModal()">✕ Close</button>
+        </div>
+      </div>
+      
+      <div id="printable-paper-content" style="background:#fff; color:#000; padding:2rem; border:1px solid #cbd5e1; border-radius:8px; font-family:'Segoe UI', Arial, sans-serif;">
+        <!-- Dynamic printable paper HTML rendered here -->
+      </div>
+    </div>
   </div>
 
   <div id="toast" class="toast"></div>
@@ -810,6 +830,113 @@
       setTimeout(() => {
         window.location.href = `teacher-published.html?code=${testCode}`;
       }, 800);
+    };
+
+    /* ── Printable Question Paper Functions ── */
+    window.openPrintablePaperModal = function() {
+      const paperEl = document.getElementById('printable-paper-content');
+      const title = testDetails.title || 'Assessment Paper';
+      const subject = testDetails.subject || 'General';
+      const duration = testDetails.duration || 30;
+      const questions = generatedQuestions.length > 0 ? generatedQuestions : [];
+      let totalMarks = questions.reduce((sum, q) => sum + (q.marks || 2), 0);
+      if (totalMarks === 0) totalMarks = testDetails.totalMarks || 20;
+
+      let html = `
+        <div style="text-align:center; border-bottom:2px solid #000; padding-bottom:1rem; margin-bottom:1.5rem;">
+          <h1 style="font-size:1.6rem; text-transform:uppercase; margin-bottom:0.25rem; font-weight:800; color:#000;">${title}</h1>
+          <div style="font-size:0.95rem; font-weight:600; color:#333; margin-bottom:0.5rem;">Subject: ${subject} &middot; EduMetric Assessment</div>
+          <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; border-top:1px solid #000; padding-top:0.5rem; margin-top:0.5rem;">
+            <span>⏱ Time Allowed: ${duration} Minutes</span>
+            <span>💯 Maximum Marks: ${totalMarks} Marks</span>
+          </div>
+        </div>
+
+        <div style="border:1px solid #000; padding:0.75rem 1rem; font-size:0.85rem; margin-bottom:1.5rem; display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+          <div><strong>Student Name:</strong> ___________________________</div>
+          <div><strong>Roll No / ID:</strong> ______________</div>
+          <div><strong>Date:</strong> ______________</div>
+        </div>
+
+        <div style="font-size:0.85rem; font-style:italic; margin-bottom:1.5rem; background:#f8fafc; padding:0.5rem 0.75rem; border-left:3px solid #000;">
+          <strong>General Instructions:</strong> Answer all questions clearly. Ensure your name and roll number are written above.
+        </div>
+
+        <div style="display:flex; flex-direction:column; gap:1.25rem;">
+      `;
+
+      if (questions.length === 0) {
+        html += `<div style="text-align:center; padding:2rem; color:#666;">No questions generated yet. Please configure topic/syllabus first.</div>`;
+      } else {
+        questions.forEach((q, i) => {
+          html += `
+            <div style="page-break-inside:avoid; border-bottom:1px dashed #cbd5e1; padding-bottom:1rem;">
+              <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.95rem; margin-bottom:0.35rem; color:#000;">
+                <span>Q${i + 1}. ${q.question}</span>
+                <span style="font-size:0.85rem; color:#333;">[${q.marks || 2} Marks]</span>
+              </div>
+          `;
+
+          if (q.type === 'MCQ' && q.options && q.options.length > 0) {
+            html += `<div style="display:grid; grid-template-columns:1fr 1fr; gap:0.5rem; margin-top:0.5rem; font-size:0.9rem; padding-left:1rem;">`;
+            q.options.forEach((opt, optIdx) => {
+              const letter = String.fromCharCode(65 + optIdx);
+              html += `<div><strong>(${letter})</strong> ${opt}</div>`;
+            });
+            html += `</div>`;
+          } else if (q.type === 'TF' || q.type === 'True/False') {
+            html += `
+              <div style="display:flex; gap:2.5rem; margin-top:0.5rem; font-size:0.9rem; padding-left:1rem;">
+                <div>[ &nbsp; ] True</div>
+                <div>[ &nbsp; ] False</div>
+              </div>
+            `;
+          } else {
+            html += `
+              <div style="margin-top:0.75rem; border-bottom:1px solid #94a3b8; height:24px; margin-left:1rem;"></div>
+              <div style="margin-top:0.5rem; border-bottom:1px solid #94a3b8; height:24px; margin-left:1rem;"></div>
+            `;
+          }
+
+          html += `</div>`;
+        });
+      }
+
+      html += `</div>`;
+      paperEl.innerHTML = html;
+      document.getElementById('print-paper-modal').classList.add('active');
+    };
+
+    window.closePrintablePaperModal = function() {
+      document.getElementById('print-paper-modal').classList.remove('active');
+    };
+
+    window.printQuestionPaper = function() {
+      const content = document.getElementById('printable-paper-content').innerHTML;
+      const printWindow = window.open('', '_blank', 'width=850,height=950');
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>${testDetails.title || 'Question Paper'}</title>
+          <style>
+            body { font-family: 'Segoe UI', Arial, sans-serif; padding: 2rem; color: #000; background: #fff; line-height: 1.5; }
+            @media print {
+              body { padding: 0; margin: 0; }
+            }
+          </style>
+        </head>
+        <body>
+          ${content}
+          <script>
+            window.onload = function() {
+              window.print();
+            };
+          </script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
     };
   </script>
 </body>
