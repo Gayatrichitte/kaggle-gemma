@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Student Portal – Join Assessment" />
+  <title>Student Portal | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+    }
+    .student-entry-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+    }
+    .entry-card {
+      max-width: 440px;
+      width: 100%;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: 2.5rem 2rem;
+      box-shadow: var(--shadow-md);
+    }
+    .entry-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .entry-icon {
+      font-size: 2.75rem;
+      margin-bottom: .75rem;
+    }
+    .entry-title {
+      font-size: 1.6rem;
+      margin-bottom: .4rem;
+    }
+    .entry-sub {
+      font-size: .9rem;
+      color: var(--color-muted);
+    }
+    .form-group {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      font-size: .85rem;
+      font-weight: 600;
+      color: var(--color-primary);
+    }
+    .form-input {
+      padding: .75rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      font-family: inherit;
+      font-size: .95rem;
+      transition: all var(--t-fast);
+      background: var(--color-bg);
+    }
+    .form-input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .code-input {
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      font-weight: 700;
+      font-size: 1.1rem;
+      text-align: center;
+    }
+    .quick-code {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: .6rem .875rem;
+      background: #eff6ff;
+      border: 1px dashed rgba(37, 99, 235, 0.3);
+      border-radius: var(--radius-md);
+      margin-bottom: 1.5rem;
+      font-size: .8rem;
+    }
+    .quick-code-btn {
+      background: var(--color-accent);
+      color: #fff;
+      border: none;
+      padding: .25rem .6rem;
+      border-radius: var(--radius-sm);
+      font-size: .75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .btn-block {
+      width: 100%;
+      padding: .85rem;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="index.html">Home</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <div class="student-entry-container page-enter">
+      <div class="entry-card">
+        <div class="entry-header">
+          <div class="entry-icon">🎓</div>
+          <h1 class="entry-title">Student Portal</h1>
+          <p class="entry-sub">Enter your test code and name to join your assessment.</p>
+        </div>
+
+        <form id="join-form" onsubmit="handleJoin(event)">
+          <div class="form-group">
+            <label class="form-label" for="student-name">Your Full Name</label>
+            <input
+              type="text"
+              id="student-name"
+              class="form-input"
+              placeholder="e.g. Aryan Mehta"
+              required
+              value="Aryan Mehta"
+            />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="test-code">Test Code</label>
+            <input
+              type="text"
+              id="test-code"
+              class="form-input code-input"
+              placeholder="GEM-472"
+              maxlength="7"
+              required
+              value="GEM-472"
+            />
+          </div>
+
+          <div class="quick-code">
+            <span>Demo Test: <strong>GEM-472</strong> (Photosynthesis)</span>
+            <button type="button" class="quick-code-btn" onclick="fillDemoCode()">Fill</button>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block">
+            Start Assessment →
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    function fillDemoCode() {
+      document.getElementById('test-code').value = 'GEM-472';
+      document.getElementById('student-name').value = 'Aryan Mehta';
+    }
+
+    function handleJoin(e) {
+      e.preventDefault();
+      const name = document.getElementById('student-name').value.trim();
+      const code = document.getElementById('test-code').value.trim().toUpperCase();
+
+      if (!name || !code) {
+        showToast('Please fill in both name and test code.');
+        return;
+      }
+
+      // Store in sessionStorage for test interface
+      sessionStorage.setItem('studentName', name);
+      sessionStorage.setItem('testCode', code);
+
+      window.location.href = `student-test.html?code=${encodeURIComponent(code)}&name=${encodeURIComponent(name)}`;
+    }
+  </script>
+</body>
+</html>

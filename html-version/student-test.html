@@ -1,0 +1,842 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Assessment Interface – Education Analyzer" />
+  <title>Assessment | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Exam Shell ── */
+    .exam-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+      user-select: none;
+    }
+
+    /* ── Sticky Exam Header ── */
+    .exam-header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--color-border);
+      padding: .75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .exam-title-group {
+      display: flex;
+      flex-direction: column;
+    }
+    .exam-title {
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+    .exam-student {
+      font-size: .8rem;
+      color: var(--color-muted);
+    }
+
+    /* ── Timer Pill ── */
+    .timer-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      padding: .45rem .9rem;
+      background: var(--color-primary);
+      color: #fff;
+      border-radius: 9999px;
+      font-family: monospace;
+      font-size: 1rem;
+      font-weight: 700;
+      box-shadow: var(--shadow-sm);
+      transition: all var(--t-fast);
+    }
+    .timer-warning {
+      background: var(--color-error) !important;
+      animation: timerPulse 1s ease-in-out infinite;
+    }
+    @keyframes timerPulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    /* ── Progress Section in Header ── */
+    .header-progress {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      min-width: 220px;
+    }
+    .progress-text {
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--color-muted);
+      white-space: nowrap;
+    }
+
+    /* ── Exam Body ── */
+    .exam-body {
+      flex: 1;
+      max-width: 1040px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 1.5rem;
+      align-items: start;
+    }
+
+    /* ── Question Navigator Sidebar ── */
+    .nav-card {
+      position: sticky;
+      top: 80px;
+    }
+    .nav-header {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      color: var(--color-muted);
+      margin-bottom: .875rem;
+    }
+    .q-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: .5rem;
+      margin-bottom: 1rem;
+    }
+    .q-grid-item {
+      aspect-ratio: 1;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface);
+      font-size: .85rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all var(--t-fast);
+    }
+    .q-grid-item:hover {
+      border-color: var(--color-accent);
+      background: #eff6ff;
+    }
+    .q-grid-item.active {
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      color: #fff;
+    }
+    .q-grid-item.answered {
+      background: #d1fae5;
+      border-color: #059669;
+      color: #065f46;
+    }
+    .q-grid-item.answered.active {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: #fff;
+    }
+
+    .legend-row {
+      display: flex;
+      flex-direction: column;
+      gap: .4rem;
+      font-size: .75rem;
+      color: var(--color-muted);
+      border-top: 1px solid var(--color-border);
+      padding-top: .75rem;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+    }
+
+    /* ── Question Card ── */
+    .question-card {
+      min-height: 440px;
+      display: flex;
+      flex-direction: column;
+    }
+    .q-meta-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1.25rem;
+    }
+    .q-number-badge {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--color-accent);
+    }
+    .q-badges {
+      display: flex;
+      gap: .5rem;
+    }
+    .q-prompt {
+      font-size: 1.15rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      line-height: 1.5;
+      margin-bottom: 1.5rem;
+    }
+
+    /* ── Inputs / Option Styling ── */
+    .options-container {
+      display: flex;
+      flex-direction: column;
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+    .option-card {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: .875rem 1.1rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface);
+      cursor: pointer;
+      transition: all var(--t-fast);
+      font-size: .95rem;
+    }
+    .option-card:hover {
+      border-color: var(--color-accent);
+      background: #eff6ff;
+    }
+    .option-card.selected {
+      border-color: var(--color-accent);
+      background: #eff6ff;
+      font-weight: 600;
+    }
+    .opt-circle {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+      transition: all var(--t-fast);
+    }
+    .option-card.selected .opt-circle {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+      color: #fff;
+    }
+
+    /* True / False cards */
+    .tf-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+      flex: 1;
+    }
+    .tf-card {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .75rem;
+      padding: 1.25rem;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      cursor: pointer;
+      font-size: 1.1rem;
+      font-weight: 600;
+      transition: all var(--t-fast);
+    }
+    .tf-card:hover {
+      border-color: var(--color-accent);
+      background: #eff6ff;
+    }
+    .tf-card.selected {
+      border-color: var(--color-accent);
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    /* Text & Textarea Inputs */
+    .text-answer-input {
+      width: 100%;
+      padding: .85rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      font-family: inherit;
+      font-size: .95rem;
+      transition: all var(--t-fast);
+      margin-bottom: 1.5rem;
+    }
+    .text-answer-input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+    .textarea-answer {
+      width: 100%;
+      min-height: 140px;
+      padding: .85rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      font-family: inherit;
+      font-size: .95rem;
+      resize: vertical;
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+    .textarea-answer:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
+    /* ── Exam Footer Actions ── */
+    .exam-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--color-border);
+      margin-top: auto;
+    }
+
+    /* ── Modal Overlay ── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--t-fast);
+    }
+    .modal-overlay.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-box {
+      background: var(--color-surface);
+      border-radius: var(--radius-2xl);
+      padding: 2rem;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+      transform: scale(0.95);
+      transition: transform var(--t-fast);
+    }
+    .modal-overlay.active .modal-box {
+      transform: scale(1);
+    }
+    .modal-title {
+      font-size: 1.4rem;
+      margin-bottom: .5rem;
+    }
+    .modal-desc {
+      font-size: .9rem;
+      color: var(--color-muted);
+      margin-bottom: 1.5rem;
+    }
+    .modal-stats {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      justify-content: space-around;
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+    .modal-stat-num {
+      font-size: 1.4rem;
+      font-weight: 800;
+    }
+    .modal-stat-lbl {
+      font-size: .75rem;
+      color: var(--color-muted);
+      text-transform: uppercase;
+    }
+    .modal-actions {
+      display: flex;
+      gap: .75rem;
+      justify-content: flex-end;
+    }
+
+    /* ── Completion Screen ── */
+    .completion-container {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 3rem 1.5rem;
+      max-width: 580px;
+      margin: 2rem auto;
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      box-shadow: var(--shadow-md);
+    }
+    .completion-check {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+      animation: bounceIn .5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    @keyframes bounceIn {
+      from { transform: scale(0.5); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="exam-page">
+    <!-- ── Sticky Top Bar ── -->
+    <header class="exam-header">
+      <div class="exam-title-group">
+        <span class="exam-title" id="test-title">Introduction to Photosynthesis</span>
+        <span class="exam-student" id="student-display">Student: Aryan Mehta</span>
+      </div>
+
+      <div class="timer-pill" id="timer-pill">
+        <span>⏱️</span>
+        <span id="timer-display">15:00</span>
+      </div>
+
+      <div class="header-progress">
+        <span class="progress-text" id="progress-text">0 of 8 Answered</span>
+        <div class="progress-wrap">
+          <div class="progress-bar" id="header-progress-bar" style="width: 0%;"></div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── Main Exam Layout ── -->
+    <main class="exam-body" id="exam-main">
+      <!-- ── Sidebar Question Navigator ── -->
+      <aside class="card nav-card">
+        <div class="nav-header">Question Navigator</div>
+        <div class="q-grid" id="q-navigator">
+          <!-- Populated by JS -->
+        </div>
+        <div class="legend-row">
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--color-accent)"></div>
+            <span>Current Question</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:#059669"></div>
+            <span>Answered</span>
+          </div>
+          <div class="legend-item">
+            <div class="legend-dot" style="background:var(--color-surface); border:1px solid var(--color-border)"></div>
+            <span>Unanswered</span>
+          </div>
+        </div>
+      </aside>
+
+      <!-- ── Question Content ── -->
+      <section class="card question-card page-enter" id="question-card">
+        <div class="q-meta-row">
+          <span class="q-number-badge" id="q-number-lbl">Question 1 of 8</span>
+          <div class="q-badges">
+            <span class="badge" id="q-type-badge">MCQ</span>
+            <span class="badge badge-neutral" id="q-marks-badge">2 Marks</span>
+          </div>
+        </div>
+
+        <h2 class="q-prompt" id="q-text-prompt">Which of the following is the primary pigment responsible for photosynthesis?</h2>
+
+        <div id="q-input-container">
+          <!-- Dynamic options / input rendered by JS -->
+        </div>
+
+        <div class="exam-actions">
+          <button class="btn btn-secondary" id="btn-prev" onclick="prevQuestion()" disabled>
+            ← Previous
+          </button>
+
+          <button class="btn btn-ghost btn-sm" onclick="clearCurrentAnswer()">
+            Clear Answer
+          </button>
+
+          <div style="display: flex; gap: .75rem;">
+            <button class="btn btn-primary" id="btn-next" onclick="nextQuestion()">
+              Next Question →
+            </button>
+            <button class="btn btn-success" id="btn-submit" onclick="promptSubmission()">
+              Submit Test
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- ── Completion Screen ── -->
+    <div class="completion-container" id="completion-screen">
+      <div class="completion-check">✅</div>
+      <h1 style="font-size: 1.8rem; margin-bottom: .5rem;">Assessment Submitted!</h1>
+      <p style="color: var(--color-muted); margin-bottom: 1.5rem;">Thank you for completing your test. Your responses have been recorded.</p>
+
+      <div class="card" style="width: 100%; max-width: 400px; margin-bottom: 2rem; text-align: left;">
+        <div style="font-size: .8rem; font-weight: 700; color: var(--color-muted); text-transform: uppercase; margin-bottom: .75rem;">Submission Summary</div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: .5rem; font-size: .9rem;">
+          <span>Student:</span>
+          <strong id="summary-student-name">Aryan Mehta</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: .5rem; font-size: .9rem;">
+          <span>Test Code:</span>
+          <strong id="summary-test-code">GEM-472</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-bottom: .5rem; font-size: .9rem;">
+          <span>Total Questions:</span>
+          <strong id="summary-total-q">8</strong>
+        </div>
+        <div style="display: flex; justify-content: space-between; font-size: .9rem;">
+          <span>Questions Answered:</span>
+          <strong id="summary-answered-q" style="color: var(--color-success)">8 / 8</strong>
+        </div>
+      </div>
+
+      <a href="student.html" class="btn btn-primary">Return to Student Portal</a>
+    </div>
+
+    <!-- ── Submission Confirmation Modal ── -->
+    <div class="modal-overlay" id="submit-modal">
+      <div class="modal-box">
+        <h2 class="modal-title">Submit Assessment?</h2>
+        <p class="modal-desc">Are you sure you want to finish and submit your test? You cannot change your answers after submission.</p>
+
+        <div class="modal-stats">
+          <div>
+            <div class="modal-stat-num" id="modal-answered-count">0</div>
+            <div class="modal-stat-lbl">Answered</div>
+          </div>
+          <div>
+            <div class="modal-stat-num" id="modal-unanswered-count" style="color: var(--color-warning)">8</div>
+            <div class="modal-stat-lbl">Unanswered</div>
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-secondary" onclick="closeModal()">Return to Test</button>
+          <button class="btn btn-success" onclick="confirmSubmission()">Yes, Submit Test</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    /* ── Exam Questions Data ── */
+    const QUESTIONS = [
+      {
+        id: 1,
+        type: 'MCQ',
+        difficulty: 'Easy',
+        marks: 2,
+        question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
+        options: ['Carotenoid', 'Chlorophyll', 'Xanthophyll', 'Anthocyanin']
+      },
+      {
+        id: 2,
+        type: 'MCQ',
+        difficulty: 'Hard',
+        marks: 3,
+        question: 'In the Calvin cycle, how many ATP molecules are consumed per CO₂ molecule fixed?',
+        options: ['1', '2', '3', '4']
+      },
+      {
+        id: 3,
+        type: 'True/False',
+        difficulty: 'Easy',
+        marks: 1,
+        question: 'The light-dependent reactions of photosynthesis occur in the stroma of the chloroplast.',
+        options: ['True', 'False']
+      },
+      {
+        id: 4,
+        type: 'True/False',
+        difficulty: 'Easy',
+        marks: 1,
+        question: 'Oxygen is released as a by-product of the light-dependent reactions.',
+        options: ['True', 'False']
+      },
+      {
+        id: 5,
+        type: 'One-liner',
+        difficulty: 'Medium',
+        marks: 2,
+        question: 'What is the primary role of NADPH in the Calvin cycle?'
+      },
+      {
+        id: 6,
+        type: 'Brief Answer',
+        difficulty: 'Hard',
+        marks: 5,
+        question: 'Explain the significance of photorespiration and its impact on plant photosynthetic efficiency.'
+      },
+      {
+        id: 7,
+        type: 'MCQ',
+        difficulty: 'Medium',
+        marks: 2,
+        question: 'Which of the following organisms perform anoxygenic photosynthesis?',
+        options: ['Plants', 'Cyanobacteria', 'Purple sulfur bacteria', 'Algae']
+      },
+      {
+        id: 8,
+        type: 'Brief Answer',
+        difficulty: 'Hard',
+        marks: 5,
+        question: 'Compare and contrast the structural and biochemical adaptations of C3 and C4 plants.'
+      }
+    ];
+
+    /* ── Exam State ── */
+    let currentIndex = 0;
+    let userAnswers = {}; // { questionId: answer }
+    let remainingSeconds = 15 * 60; // 15 minutes
+    let timerInterval = null;
+
+    /* ── Init ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      // Get params or session storage
+      const urlParams = new URLSearchParams(window.location.search);
+      const studentName = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Aryan Mehta';
+      const testCode = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
+
+      document.getElementById('student-display').textContent = `Student: ${studentName}`;
+
+      startTimer();
+      renderNavigator();
+      renderQuestion(currentIndex);
+    });
+
+    /* ── Timer Logic ── */
+    function startTimer() {
+      const display = document.getElementById('timer-display');
+      const pill = document.getElementById('timer-pill');
+
+      timerInterval = setInterval(() => {
+        remainingSeconds--;
+
+        const mins = Math.floor(remainingSeconds / 60);
+        const secs = remainingSeconds % 60;
+        display.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+        if (remainingSeconds <= 180) { // Warning under 3 minutes
+          pill.classList.add('timer-warning');
+        }
+
+        if (remainingSeconds <= 0) {
+          clearInterval(timerInterval);
+          showToast('Time is up! Submitting your assessment...');
+          setTimeout(confirmSubmission, 1500);
+        }
+      }, 1000);
+    }
+
+    /* ── Render Navigator Grid ── */
+    function renderNavigator() {
+      const grid = document.getElementById('q-navigator');
+      grid.innerHTML = '';
+
+      QUESTIONS.forEach((q, i) => {
+        const item = document.createElement('div');
+        let classes = 'q-grid-item';
+        if (i === currentIndex) classes += ' active';
+        if (userAnswers[q.id] && String(userAnswers[q.id]).trim() !== '') classes += ' answered';
+
+        item.className = classes;
+        item.textContent = i + 1;
+        item.onclick = () => goToQuestion(i);
+        grid.appendChild(item);
+      });
+
+      updateProgress();
+    }
+
+    /* ── Update Header Progress ── */
+    function updateProgress() {
+      const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
+      const total = QUESTIONS.length;
+      const pct = (answeredCount / total) * 100;
+
+      document.getElementById('progress-text').textContent = `${answeredCount} of ${total} Answered`;
+      document.getElementById('header-progress-bar').style.width = `${pct}%`;
+    }
+
+    /* ── Render Current Question ── */
+    function renderQuestion(index) {
+      const q = QUESTIONS[index];
+
+      document.getElementById('q-number-lbl').textContent = `Question ${index + 1} of ${QUESTIONS.length}`;
+      document.getElementById('q-type-badge').textContent = q.type;
+      document.getElementById('q-marks-badge').textContent = `${q.marks} Mark${q.marks > 1 ? 's' : ''}`;
+      document.getElementById('q-text-prompt').textContent = q.question;
+
+      const inputContainer = document.getElementById('q-input-container');
+      inputContainer.innerHTML = '';
+
+      const currentAnswer = userAnswers[q.id] || '';
+
+      if (q.type === 'MCQ') {
+        const optsDiv = document.createElement('div');
+        optsDiv.className = 'options-container';
+
+        q.options.forEach((opt, i) => {
+          const letter = String.fromCharCode(65 + i);
+          const isSelected = currentAnswer === opt;
+
+          const optCard = document.createElement('div');
+          optCard.className = `option-card ${isSelected ? 'selected' : ''}`;
+          optCard.onclick = () => selectOption(q.id, opt);
+
+          optCard.innerHTML = `
+            <div class="opt-circle">${letter}</div>
+            <span>${opt}</span>
+          `;
+          optsDiv.appendChild(optCard);
+        });
+        inputContainer.appendChild(optsDiv);
+      } else if (q.type === 'True/False') {
+        const tfDiv = document.createElement('div');
+        tfDiv.className = 'tf-grid';
+
+        ['True', 'False'].forEach(val => {
+          const isSelected = currentAnswer === val;
+          const card = document.createElement('div');
+          card.className = `tf-card ${isSelected ? 'selected' : ''}`;
+          card.onclick = () => selectOption(q.id, val);
+          card.innerHTML = `
+            <span>${val === 'True' ? '✅' : '❌'}</span>
+            <span>${val}</span>
+          `;
+          tfDiv.appendChild(card);
+        });
+        inputContainer.appendChild(tfDiv);
+      } else if (q.type === 'One-liner') {
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'text-answer-input';
+        input.placeholder = 'Type your concise answer here...';
+        input.value = currentAnswer;
+        input.oninput = (e) => saveTextAnswer(q.id, e.target.value);
+        inputContainer.appendChild(input);
+      } else if (q.type === 'Brief Answer') {
+        const textarea = document.createElement('textarea');
+        textarea.className = 'textarea-answer';
+        textarea.placeholder = 'Write your detailed response here...';
+        textarea.value = currentAnswer;
+        textarea.oninput = (e) => saveTextAnswer(q.id, e.target.value);
+        inputContainer.appendChild(textarea);
+      }
+
+      // Update Nav buttons
+      document.getElementById('btn-prev').disabled = index === 0;
+      document.getElementById('btn-next').disabled = index === QUESTIONS.length - 1;
+
+      renderNavigator();
+    }
+
+    /* ── Save Answers ── */
+    function selectOption(qId, val) {
+      userAnswers[qId] = val;
+      renderQuestion(currentIndex);
+    }
+
+    function saveTextAnswer(qId, val) {
+      userAnswers[qId] = val;
+      renderNavigator();
+    }
+
+    function clearCurrentAnswer() {
+      const q = QUESTIONS[currentIndex];
+      delete userAnswers[q.id];
+      renderQuestion(currentIndex);
+      showToast('Answer cleared.');
+    }
+
+    /* ── Navigation ── */
+    function goToQuestion(index) {
+      currentIndex = index;
+      renderQuestion(currentIndex);
+    }
+
+    function nextQuestion() {
+      if (currentIndex < QUESTIONS.length - 1) {
+        currentIndex++;
+        renderQuestion(currentIndex);
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion(currentIndex);
+      }
+    }
+
+    /* ── Modal & Submission ── */
+    function promptSubmission() {
+      const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
+      const unansweredCount = QUESTIONS.length - answeredCount;
+
+      document.getElementById('modal-answered-count').textContent = answeredCount;
+      document.getElementById('modal-unanswered-count').textContent = unansweredCount;
+
+      document.getElementById('submit-modal').classList.add('active');
+    }
+
+    function closeModal() {
+      document.getElementById('submit-modal').classList.remove('active');
+    }
+
+    function confirmSubmission() {
+      closeModal();
+      clearInterval(timerInterval);
+
+      // Hide exam main & header
+      document.getElementById('exam-main').style.display = 'none';
+
+      // Show completion screen
+      const completion = document.getElementById('completion-screen');
+      completion.style.display = 'flex';
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const studentName = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Aryan Mehta';
+      const testCode = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
+
+      const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
+
+      document.getElementById('summary-student-name').textContent = studentName;
+      document.getElementById('summary-test-code').textContent = testCode;
+      document.getElementById('summary-total-q').textContent = QUESTIONS.length;
+      document.getElementById('summary-answered-q').textContent = `${answeredCount} / ${QUESTIONS.length}`;
+    }
+  </script>
+</body>
+</html>
