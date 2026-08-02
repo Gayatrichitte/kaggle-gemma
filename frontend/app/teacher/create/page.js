@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '../../../components/Navbar';
 import Button from '../../../components/Button';
@@ -415,12 +416,12 @@ function QuestionCard({ q, index, onDelete, onRegenerate }) {
    Step 3 – Review & Publish
 ────────────────────────────────────────────── */
 function ReviewStep({ onBack }) {
+  const router = useRouter();
   const [questions, setQuestions] = useState(MOCK_QUESTIONS);
-  const [published, setPublished] = useState(false);
 
   const deleteQ = (id) => setQuestions(prev => prev.filter(q => q.id !== id));
   const regenerateQ = (id) => {
-    // Mock: shuffle answer to simulate regeneration
+    // Mock: shuffle difficulty to simulate regeneration
     setQuestions(prev => prev.map(q => q.id === id
       ? { ...q, difficulty: ['Easy', 'Medium', 'Hard'][Math.floor(Math.random() * 3)] }
       : q
@@ -429,24 +430,11 @@ function ReviewStep({ onBack }) {
 
   const totalMarks = questions.reduce((sum, q) => sum + q.marks, 0);
 
-  if (published) {
-    return (
-      <div className={styles.publishedScreen}>
-        <div className={styles.publishSuccess}>✅</div>
-        <h2>Test Published Successfully!</h2>
-        <p>Your assessment is now live and available to students.</p>
-        <div className={styles.publishMeta}>
-          <span>📋 {questions.length} Questions</span>
-          <span>📊 {totalMarks} Marks</span>
-          <span>⏱️ 30 min</span>
-        </div>
-        <div className={styles.publishActions}>
-          <Link href="/teacher"><Button variant="primary">← Back to Dashboard</Button></Link>
-          <Link href="/teacher/create"><Button variant="secondary">Create Another Test</Button></Link>
-        </div>
-      </div>
-    );
-  }
+  const handlePublish = () => {
+    // Navigate to the dedicated published success page
+    router.push('/teacher/published');
+  };
+
 
   return (
     <div className={styles.stepContent}>
@@ -490,7 +478,7 @@ function ReviewStep({ onBack }) {
 
       <div className={styles.stepActions}>
         <Button variant="secondary" onClick={onBack}>← Reconfigure</Button>
-        <Button variant="primary" id="publish-test-btn" onClick={() => setPublished(true)}>
+        <Button variant="primary" id="publish-test-btn" onClick={handlePublish}>
           🚀 Publish Test
         </Button>
       </div>

@@ -1,0 +1,373 @@
+/* ─── Page shell ─────────────────────────────────── */
+.page {
+  min-height: 100vh;
+  background: var(--color-bg);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ─── Confetti ────────────────────────────────────── */
+.confettiWrap {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  top: -20px;
+  animation: fall linear forwards;
+}
+
+@keyframes fall {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+  80%  { opacity: 1; }
+  100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+}
+
+/* ─── Main container ─────────────────────────────── */
+.container {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 600px;
+  width: 100%;
+  margin: 0 auto;
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  gap: var(--spacing-xl);
+
+  /* Entrance animation */
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.55s cubic-bezier(0.4,0,0.2,1),
+              transform 0.55s cubic-bezier(0.4,0,0.2,1);
+}
+
+.containerVisible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─── Animated check icon ────────────────────────── */
+.checkWrapper {
+  width: 88px;
+  height: 88px;
+}
+
+.checkSvg {
+  width: 100%;
+  height: 100%;
+}
+
+.checkCircle {
+  stroke-dasharray: 160;
+  stroke-dashoffset: 160;
+  animation: drawCircle 0.55s cubic-bezier(0.4, 0, 0.2, 1) 0.1s forwards;
+}
+
+.checkMark {
+  stroke-dasharray: 50;
+  stroke-dashoffset: 50;
+  animation: drawMark 0.4s cubic-bezier(0.4, 0, 0.2, 1) 0.55s forwards;
+}
+
+@keyframes drawCircle {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes drawMark {
+  to { stroke-dashoffset: 0; }
+}
+
+/* ─── Header ─────────────────────────────────────── */
+.header {
+  text-align: center;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 0.35rem;
+  letter-spacing: -0.03em;
+}
+
+.subtitle {
+  color: var(--color-text-muted);
+  font-size: 1rem;
+}
+
+/* ─── Details card ───────────────────────────────── */
+.detailsCard {
+  width: 100%;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+}
+
+.detailsTop {
+  margin-bottom: var(--spacing-md);
+}
+
+.detailsSubject {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--color-accent);
+  display: block;
+  margin-bottom: 4px;
+}
+
+.detailsName {
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.detailsPills {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-border);
+}
+
+.pill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.pillDivider {
+  width: 1px;
+  height: 36px;
+  background: var(--color-border);
+}
+
+.pillIcon {
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.pillValue {
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  line-height: 1;
+}
+
+.pillLabel {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+/* ─── Code section ───────────────────────────────── */
+.codeSection {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.codeLabel {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+
+.codeCard {
+  position: relative;
+  width: 100%;
+  background: var(--color-primary);
+  border-radius: var(--radius-xl);
+  padding: var(--spacing-xl) var(--spacing-2xl);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-md);
+  overflow: hidden;
+  box-shadow: 0 8px 40px rgba(15, 23, 42, 0.18);
+}
+
+/* Subtle glow blob behind the code */
+.codeGlow {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(37,99,235,0.35) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.codeIcon {
+  font-size: 1.5rem;
+  position: relative;
+  z-index: 1;
+  opacity: 0.8;
+}
+
+.codeDigits {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  position: relative;
+  z-index: 1;
+}
+
+.codeChar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.75rem;
+  font-weight: 800;
+  color: white;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.04em;
+  width: 56px;
+  height: 64px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(4px);
+
+  /* Pop-in animation */
+  opacity: 0;
+  transform: translateY(12px) scale(0.85);
+  animation: charPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+.codeSep {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.35);
+  padding: 0 2px;
+  opacity: 0;
+  animation: charPop 0.4s ease 0.45s forwards;
+}
+
+@keyframes charPop {
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.codeHint {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.5);
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+/* ─── Action buttons ──────────────────────────────── */
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  justify-content: center;
+  width: 100%;
+}
+
+.actionBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: 0.65rem 1.4rem;
+  border-radius: var(--radius-lg);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: 1px solid transparent;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.actionBtnPrimary {
+  background: var(--color-accent);
+  color: white;
+  border-color: var(--color-accent);
+  min-width: 150px;
+  justify-content: center;
+}
+
+.actionBtnPrimary:hover {
+  background: var(--color-accent-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.actionBtnCopied {
+  background: var(--color-success) !important;
+  border-color: var(--color-success) !important;
+}
+
+.actionBtnSecondary {
+  background: var(--color-surface);
+  color: var(--color-primary);
+  border-color: var(--color-border);
+}
+
+.actionBtnSecondary:hover {
+  border-color: var(--color-primary);
+  background: var(--color-secondary);
+}
+
+.actionBtnGhost {
+  background: transparent;
+  color: var(--color-text-muted);
+  border-color: var(--color-border);
+}
+
+.actionBtnGhost:hover {
+  background: var(--color-secondary);
+  color: var(--color-primary);
+}
+
+.btnIcon {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+/* ─── Gemma credit ────────────────────────────────── */
+.gemmaCredit {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  padding-top: var(--spacing-sm);
+}
+
+.gemmaDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: conic-gradient(from 0deg, #4285F4, #34A853, #FBBC04, #EA4335, #4285F4);
+  animation: orbSpin 3s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes orbSpin {
+  to { transform: rotate(360deg); }
+}
