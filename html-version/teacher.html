@@ -7,21 +7,21 @@
   <title>Teacher Dashboard | EduMetric</title>
   <link rel="stylesheet" href="styles.css" />
   <style>
-    /* ── Layout ── */
-    .page { min-height: 100vh; display: flex; flex-direction: column; }
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+    }
     .layout { display: flex; flex: 1; }
 
-    /* ── Sidebar ── */
+    /* Sidebar */
     .sidebar {
-      width: 230px;
+      width: 220px;
       background: var(--color-surface);
       border-right: 1px solid var(--color-border);
       padding: 1.25rem 0;
       flex-shrink: 0;
-      position: sticky;
-      top: 57px;
-      height: calc(100vh - 57px);
-      overflow-y: auto;
     }
     .side-nav { display: flex; flex-direction: column; gap: 2px; padding: 0 .75rem; }
     .side-nav a {
@@ -40,109 +40,110 @@
     .side-nav a.active { background: #eff6ff; color: var(--color-accent); }
     .side-nav .nav-icon { font-size: 1rem; width: 18px; text-align: center; }
 
-    /* ── Main ── */
-    .main { flex: 1; padding: 2rem; max-width: 960px; }
+    /* Main Area */
+    .main { flex: 1; padding: 2rem; max-width: 1040px; }
 
-    /* ── Welcome ── */
+    /* Top Welcome */
     .welcome {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      padding: 1.5rem 1.75rem;
-      background: var(--color-surface);
-      border: 1px solid var(--color-border);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow-sm);
-      margin-bottom: 1.5rem;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
     }
-    .welcome h1 { font-size: 1.5rem; margin-bottom: .25rem; }
-    .welcome p  { color: var(--color-muted); font-size: .9rem; }
+    .welcome h1 { font-size: 1.6rem; }
+    .welcome p { color: var(--color-muted); font-size: .9rem; margin-top: .25rem; }
 
-    /* ── Stats ── */
+    /* Stats Grid */
     .stats-row {
       display: grid;
-      grid-template-columns: repeat(4,1fr);
+      grid-template-columns: repeat(4, 1fr);
       gap: 1rem;
-      margin-bottom: 1.5rem;
+      margin-bottom: 2rem;
     }
     .stat-card {
       display: flex;
       align-items: center;
       gap: 1rem;
-      padding: 1.25rem 1rem;
+      padding: 1.25rem;
     }
-    .stat-icon { font-size: 1.75rem; }
-    .stat-value { font-size: 1.5rem; font-weight: 800; line-height: 1; }
-    .stat-label { font-size: .75rem; color: var(--color-muted); margin-top: 2px; }
+    .stat-icon { font-size: 2rem; }
+    .stat-value { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .stat-label { font-size: .75rem; color: var(--color-muted); margin-top: .25rem; text-transform: uppercase; letter-spacing: .04em; }
 
-    /* ── Content grid ── */
-    .content-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+    /* Section Grids */
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
 
-    /* ── Section card ── */
-    .sec-card { padding: 1.25rem; }
+    .sec-card { padding: 1.5rem; }
     .sec-title {
-      font-size: .875rem;
+      font-size: 1rem;
       font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .06em;
-      color: var(--color-muted);
+      color: var(--color-primary);
       margin-bottom: 1rem;
-      padding-bottom: .75rem;
-      border-bottom: 1px solid var(--color-border);
-    }
-
-    /* ── Test list ── */
-    .test-list { display: flex; flex-direction: column; gap: .35rem; }
-    .test-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: .55rem .75rem;
+    }
+
+    /* Test Cards & List */
+    .test-list { display: flex; flex-direction: column; gap: .75rem; }
+    .test-item {
+      padding: .875rem;
+      border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
       transition: background var(--t-fast);
     }
     .test-item:hover { background: var(--color-bg); }
-    .test-title { font-size: .875rem; font-weight: 500; }
-    .test-meta  { font-size: .75rem; color: var(--color-muted); margin-top: 2px; }
+    .test-title { font-weight: 600; font-size: .9rem; }
+    .test-meta { font-size: .78rem; color: var(--color-muted); margin-top: .25rem; }
 
-    /* ── Student performance ── */
-    .student-list { display: flex; flex-direction: column; gap: .75rem; }
-    .student-item {
-      display: flex;
-      align-items: center;
-      gap: .875rem;
-      padding-bottom: .75rem;
-      border-bottom: 1px solid var(--color-border);
-    }
-    .student-item:last-child { border-bottom: none; padding-bottom: 0; }
-    .student-avatar {
-      width: 34px; height: 34px;
-      border-radius: 50%;
-      background: #eff6ff;
-      color: var(--color-accent);
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 800; font-size: .85rem;
-      flex-shrink: 0;
-    }
-    .student-info { flex: 1; display: flex; flex-direction: column; gap: 4px; }
-    .student-name { font-size: .85rem; font-weight: 500; }
-    .student-test { font-size: .72rem; color: var(--color-muted); margin-bottom: 4px; }
-    .student-score { font-size: .875rem; font-weight: 700; min-width: 36px; text-align: right; }
-    .score-high { color: var(--color-success); }
-    .score-mid  { color: var(--color-warning); }
-    .score-low  { color: var(--color-error);   }
-
-    /* ── Published grid ── */
+    /* Published Cards Grid */
     .published-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px,1fr));
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
       gap: 1rem;
     }
-    .published-card { padding: 1.25rem; }
-    .pub-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: .5rem; }
-    .pub-date { font-size: .72rem; color: var(--color-muted); }
-    .pub-title { font-size: .95rem; font-weight: 600; margin-bottom: .5rem; }
-    .pub-meta { display: flex; gap: 1rem; font-size: .78rem; color: var(--color-muted); margin-bottom: .5rem; }
+    .published-card {
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .pub-top { display: flex; justify-content: space-between; align-items: center; }
+    .pub-title { font-weight: 700; font-size: 1rem; margin: .5rem 0; }
+    .pub-meta { font-size: .8rem; color: var(--color-muted); display: flex; gap: 1rem; }
+
+    /* Student Attempts Modal */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15, 23, 42, 0.5);
+      backdrop-filter: blur(4px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity var(--t-fast);
+    }
+    .modal-overlay.active { opacity: 1; pointer-events: auto; }
+    .modal-box {
+      background: var(--color-surface);
+      border-radius: var(--radius-2xl);
+      padding: 2rem;
+      max-width: 680px;
+      width: 90%;
+      box-shadow: var(--shadow-lg);
+      max-height: 85vh;
+      overflow-y: auto;
+    }
   </style>
 </head>
 <body>
@@ -163,10 +164,8 @@
         <nav class="side-nav">
           <a href="teacher.html" class="active"><span class="nav-icon">🏠</span> Dashboard</a>
           <a href="teacher-create.html"><span class="nav-icon">➕</span> Create Test</a>
-          <a href="#"><span class="nav-icon">📋</span> My Tests</a>
-          <a href="#"><span class="nav-icon">👩‍🎓</span> Students</a>
-          <a href="#"><span class="nav-icon">📊</span> Analytics</a>
-          <a href="#"><span class="nav-icon">⚙️</span> Settings</a>
+          <a href="#" onclick="openStudentsModal(); return false;"><span class="nav-icon">👩‍🎓</span> Students</a>
+          <a href="teacher-results.html"><span class="nav-icon">📊</span> Class Results</a>
         </nav>
       </aside>
 
@@ -178,7 +177,10 @@
             <h1>Welcome back, <span id="welcome-teacher-name">Teacher</span> 👋</h1>
             <p>Here's what's happening with your assessments today.</p>
           </div>
-          <a href="teacher-create.html" class="btn btn-primary">+ Create New Test</a>
+          <div style="display:flex; gap:0.75rem;">
+            <button class="btn btn-secondary" onclick="openStudentsModal()">👩‍🎓 View Student Marks by Test ID</button>
+            <a href="teacher-create.html" class="btn btn-primary">+ Create New Test</a>
+          </div>
         </div>
 
         <!-- Stats -->
@@ -193,11 +195,11 @@
           </div>
           <div class="card card-hover stat-card">
             <span class="stat-icon">👩‍🎓</span>
-            <div><div class="stat-value">0</div><div class="stat-label">Students</div></div>
+            <div><div class="stat-value" id="stat-total-submissions">0</div><div class="stat-label">Total Student Submissions</div></div>
           </div>
           <div class="card card-hover stat-card">
             <span class="stat-icon">📈</span>
-            <div><div class="stat-value">—</div><div class="stat-label">Avg Score</div></div>
+            <div><div class="stat-value" id="stat-avg-pct">—</div><div class="stat-label">Avg Score</div></div>
           </div>
         </div>
 
@@ -205,30 +207,70 @@
         <div class="content-grid">
           <!-- Recent Tests -->
           <div class="card sec-card">
-            <div class="sec-title">Recent Tests</div>
+            <div class="sec-title">Recent Created Tests</div>
             <div class="test-list" id="recent-tests"></div>
           </div>
 
-          <!-- Student Performance -->
+          <!-- Student Submissions -->
           <div class="card sec-card">
-            <div class="sec-title">Student Performance</div>
+            <div class="sec-title">
+              <span>Student Performance</span>
+              <button class="btn btn-secondary btn-sm" onclick="openStudentsModal()">View All</button>
+            </div>
             <div class="student-list" id="student-list"></div>
           </div>
         </div>
 
         <!-- Published Tests -->
         <div class="card sec-card">
-          <div class="sec-title">Published Tests</div>
+          <div class="sec-title">Published Assessments (Click Test ID to View Student Marks)</div>
           <div class="published-grid" id="published-grid"></div>
         </div>
       </main>
     </div>
   </div>
 
+  <!-- ── Teacher Student Marks Modal ── -->
+  <div class="modal-overlay" id="students-modal">
+    <div class="modal-box">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <h2 style="font-size:1.4rem;">👩‍🎓 Student Marks &amp; Submissions by Test ID</h2>
+        <button class="btn btn-ghost btn-sm" onclick="closeStudentsModal()">✕ Close</button>
+      </div>
+
+      <div style="margin-bottom:1rem; display:flex; gap:0.5rem; align-items:center;">
+        <label style="font-size:0.85rem; font-weight:700; color:var(--color-muted);">Select Test ID:</label>
+        <select id="modal-test-select" onchange="filterSubmissionsByTest(this.value)" style="padding:0.4rem 0.75rem; border-radius:var(--radius-md); border:1px solid var(--color-border); font-size:0.9rem; flex:1;">
+          <option value="ALL">All Test IDs</option>
+        </select>
+      </div>
+
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem;">
+          <thead>
+            <tr style="background:var(--color-bg); border-bottom:2px solid var(--color-border);">
+              <th style="padding:0.6rem 0.8rem;">Student Name</th>
+              <th style="padding:0.6rem 0.8rem;">Test ID</th>
+              <th style="padding:0.6rem 0.8rem;">Marks Obtained</th>
+              <th style="padding:0.6rem 0.8rem;">Percentage</th>
+              <th style="padding:0.6rem 0.8rem;">Date</th>
+            </tr>
+          </thead>
+          <tbody id="modal-students-table">
+            <!-- Rendered by JS -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
   <script type="module">
-    import { auth, signOut, db, doc, deleteDoc, ensureFirebaseAuth } from "./firebase-config.js";
+    import { auth, signOut, db, doc, collection, getDocs, deleteDoc, ensureFirebaseAuth } from "./firebase-config.js";
+
+    let globalSubmissions = [];
+    let globalTests = [];
 
     // Update Teacher Name Display
     const userStr = localStorage.getItem('ea_user');
@@ -272,7 +314,6 @@
           await deleteDoc(doc(db, "tests", nameKey));
           await deleteDoc(doc(db, "users", nameKey));
         }
-        console.log(`✅ Test ${code} deleted from Firestore`);
       } catch (err) {
         console.warn("Firestore delete notice:", err);
       }
@@ -281,45 +322,62 @@
       loadDashboardData();
     };
 
-    // Load Tests dynamically from localStorage
-    function loadDashboardData() {
+    // Load Tests & Submissions dynamically from Firebase Firestore & LocalStorage
+    async function loadDashboardData() {
       const testsStr = localStorage.getItem('ea_tests');
-      let tests = [];
-      if (testsStr) {
-        try { tests = JSON.parse(testsStr); } catch(e) {}
-      }
+      globalTests = testsStr ? JSON.parse(testsStr) : [];
+
+      // Fetch Submissions from LocalStorage & Firebase Firestore
+      const localRes = localStorage.getItem('ea_student_results');
+      globalSubmissions = localRes ? JSON.parse(localRes) : [];
+
+      try {
+        await ensureFirebaseAuth();
+        const querySnap = await getDocs(collection(db, "results"));
+        const fsList = [];
+        querySnap.forEach(d => fsList.push(d.data()));
+        if (fsList.length > 0) {
+          // Merge unique results
+          fsList.forEach(item => {
+            if (!globalSubmissions.some(s => s.resultId === item.resultId || (s.studentName === item.studentName && s.testCode === item.testCode))) {
+              globalSubmissions.push(item);
+            }
+          });
+        }
+      } catch (e) {}
 
       // Update Stat Cards
       const statValues = document.querySelectorAll('.stat-value');
-      const totalCount = tests.length;
-      const publishedCount = tests.filter(t => t.status === 'published').length;
-      const totalStudents = tests.reduce((acc, t) => acc + (t.studentsCount || 0), 0);
+      const totalCount = globalTests.length;
+      const publishedCount = globalTests.filter(t => t.status === 'published' || !t.status).length;
+      const submissionCount = globalSubmissions.length;
+      const avgPct = submissionCount > 0 ? Math.round(globalSubmissions.reduce((acc, s) => acc + (s.percentage || 0), 0) / submissionCount) : 0;
 
       if (statValues.length >= 4) {
         statValues[0].textContent = totalCount;
         statValues[1].textContent = publishedCount;
-        statValues[2].textContent = totalStudents;
-        statValues[3].textContent = totalCount > 0 ? '82%' : '—';
+        statValues[2].textContent = submissionCount;
+        statValues[3].textContent = submissionCount > 0 ? `${avgPct}%` : '—';
       }
 
       // Render Recent Tests
       const rtEl = document.getElementById('recent-tests');
       rtEl.innerHTML = '';
-      if (tests.length === 0) {
+      if (globalTests.length === 0) {
         rtEl.innerHTML = `
           <div style="padding: 1.5rem; text-align: center; color: var(--color-muted); font-size: 0.9rem;">
             No tests created yet.<br>
             <a href="teacher-create.html" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">+ Create Your First Test</a>
           </div>`;
       } else {
-        tests.slice(0, 5).forEach(t => {
-          const badgeClass = t.status === 'published' ? 'badge-published' : 'badge-draft';
+        globalTests.slice(0, 5).forEach(t => {
+          const badgeClass = t.status === 'published' || !t.status ? 'badge-published' : 'badge-draft';
           const safeTitle = (t.title || 'Test').replace(/'/g, "\\'");
           rtEl.innerHTML += `
             <div class="test-item" style="display:flex; justify-content:space-between; align-items:center;">
               <div>
                 <div class="test-title">${t.title}</div>
-                <div class="test-meta">${t.subject || 'General'} &middot; ${t.date || 'Recent'} &middot; Code: <strong>${t.code}</strong></div>
+                <div class="test-meta">${t.subject || 'General'} &middot; Code: <strong>${t.code}</strong></div>
               </div>
               <div style="display:flex; align-items:center; gap:0.5rem;">
                 <span class="badge ${badgeClass}">${t.status || 'published'}</span>
@@ -329,27 +387,47 @@
         });
       }
 
-      // Render Student Performance Section
+      // Render Student Submissions Section
       const slEl = document.getElementById('student-list');
-      slEl.innerHTML = `
-        <div style="padding: 1.5rem; text-align: center; color: var(--color-muted); font-size: 0.9rem;">
-          No student submissions received yet for your tests.
-        </div>`;
+      slEl.innerHTML = '';
+      if (globalSubmissions.length === 0) {
+        slEl.innerHTML = `
+          <div style="padding: 1.5rem; text-align: center; color: var(--color-muted); font-size: 0.9rem;">
+            No student submissions received yet for your tests.
+          </div>`;
+      } else {
+        globalSubmissions.slice(0, 5).forEach(s => {
+          const name = s.studentName || 'Student';
+          slEl.innerHTML += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:0.65rem; border-bottom:1px solid var(--color-border); font-size:0.88rem;">
+              <div>
+                <strong>${name}</strong>
+                <div style="font-size:0.75rem; color:var(--color-muted);">Test Code: <strong>${s.testCode}</strong></div>
+              </div>
+              <div style="text-align:right;">
+                <span style="font-weight:700; color:var(--color-primary);">${s.score} / ${s.maxScore}</span>
+                <div style="font-size:0.75rem; font-weight:700; color:${s.percentage >= 50 ? '#059669' : '#dc2626'};">${s.percentage}%</div>
+              </div>
+            </div>
+          `;
+        });
+      }
 
-      // Render Published Tests
+      // Render Published Tests Grid
       const pgEl = document.getElementById('published-grid');
       pgEl.innerHTML = '';
-      const publishedTests = tests.filter(t => t.status === 'published' || !t.status);
-      if (publishedTests.length === 0) {
+      if (globalTests.length === 0) {
         pgEl.innerHTML = `
           <div style="padding: 2rem; text-align: center; color: var(--color-muted); font-size: 0.9rem; grid-column: 1 / -1;">
             No published tests active. Create a new test to share with your students!
           </div>`;
       } else {
-        publishedTests.forEach(t => {
+        globalTests.forEach(t => {
           const safeTitle = (t.title || 'Test').replace(/'/g, "\\'");
+          const testAttempts = globalSubmissions.filter(s => s.testCode === t.code).length;
+
           pgEl.innerHTML += `
-            <div class="card card-hover published-card" style="position:relative; cursor:pointer;" onclick="window.location.href='teacher-published.html?code=${encodeURIComponent(t.code)}'">
+            <div class="card card-hover published-card" style="position:relative; cursor:pointer;" onclick="openStudentsModalForTest('${t.code}')">
               <div class="pub-top">
                 <span class="badge badge-neutral">${t.subject || 'General'}</span>
                 <button onclick="deleteTest('${t.code}', '${safeTitle}', event)" title="Delete Test" style="background:none; border:none; color:var(--color-danger, #ef4444); cursor:pointer; font-size:1.1rem; margin-left:auto;">🗑</button>
@@ -357,12 +435,73 @@
               <div class="pub-title" style="margin-top:0.5rem;">${t.title}</div>
               <div class="pub-meta" style="margin-top:0.75rem;">
                 <span>🔑 Code: <strong>${t.code}</strong></span>
-                <span>⏱ ${t.duration || 30}m</span>
+                <span>👩‍🎓 <strong>${testAttempts}</strong> Students</span>
+              </div>
+              <div style="margin-top:0.75rem; font-size:0.8rem; color:var(--color-accent); font-weight:700;">
+                Click to inspect student marks →
               </div>
             </div>`;
         });
       }
+
+      // Update Select Options in Modal
+      const selectEl = document.getElementById('modal-test-select');
+      selectEl.innerHTML = '<option value="ALL">All Test IDs</option>';
+      const uniqueCodes = [...new Set(globalTests.map(t => t.code))];
+      uniqueCodes.forEach(code => {
+        selectEl.innerHTML += `<option value="${code}">Test ID: ${code}</option>`;
+      });
     }
+
+    /* ── Students Modal Logic ── */
+    window.openStudentsModal = function() {
+      document.getElementById('students-modal').classList.add('active');
+      filterSubmissionsByTest('ALL');
+    };
+
+    window.openStudentsModalForTest = function(code) {
+      document.getElementById('students-modal').classList.add('active');
+      document.getElementById('modal-test-select').value = code;
+      filterSubmissionsByTest(code);
+    };
+
+    window.closeStudentsModal = function() {
+      document.getElementById('students-modal').classList.remove('active');
+    };
+
+    window.filterSubmissionsByTest = function(code) {
+      const tbody = document.getElementById('modal-students-table');
+      tbody.innerHTML = '';
+
+      let filtered = globalSubmissions;
+      if (code && code !== 'ALL') {
+        filtered = globalSubmissions.filter(s => s.testCode === code);
+      }
+
+      if (filtered.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="5" style="padding:1.5rem; text-align:center; color:var(--color-muted);">
+              No student submissions recorded yet for Test ID "${code === 'ALL' ? 'Any' : code}".
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      filtered.forEach(s => {
+        const dateStr = s.submittedAt ? new Date(s.submittedAt).toLocaleDateString() : 'Recent';
+        tbody.innerHTML += `
+          <tr style="border-bottom:1px solid var(--color-border);">
+            <td style="padding:0.6rem 0.8rem; font-weight:700; color:var(--color-primary);">${s.studentName || 'Student'}</td>
+            <td style="padding:0.6rem 0.8rem;"><span style="font-family:monospace; font-weight:700; color:var(--color-accent);">${s.testCode}</span></td>
+            <td style="padding:0.6rem 0.8rem; font-weight:700;">${s.score || 0} / ${s.maxScore || 0}</td>
+            <td style="padding:0.6rem 0.8rem; font-weight:700; color:${(s.percentage || 0) >= 50 ? '#059669' : '#dc2626'};">${s.percentage || 0}%</td>
+            <td style="padding:0.6rem 0.8rem; color:var(--color-muted);">${dateStr}</td>
+          </tr>
+        `;
+      });
+    };
 
     loadDashboardData();
 

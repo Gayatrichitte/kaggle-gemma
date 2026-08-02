@@ -115,6 +115,51 @@ ${requirements.length + 1}. Output MUST be ONLY a raw JSON array matching this s
 }
 
 /**
+ * Generates live learning feedback on-the-fly using Gemma AI (Not saved in database)
+ */
+export async function generateGemmaFeedback({ studentName, testTitle, score, maxScore, percentage }) {
+  const prompt = `You are Google Gemma AI, an encouraging educational tutor.
+Generate a concise, personalized 2-sentence learning feedback report for student "${studentName}" who scored ${score}/${maxScore} (${percentage}%) on the assessment "${testTitle}".
+Mention key strengths and 1 area for improvement. Keep it inspiring and under 60 words.`;
+
+  try {
+    const payload = {
+      messages: [{ role: "user", content: prompt }],
+      model: "meta/llama-3.1-8b-instruct",
+      max_tokens: 150,
+      temperature: 0.7
+    };
+
+    const res = await fetch(NVIDIA_DIRECT_URL, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${NVIDIA_API_KEY}`,
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify(payload)
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      const content = data?.choices?.[0]?.message?.content;
+      if (content) return content.trim();
+    }
+  } catch (e) {
+    console.warn("Live Gemma feedback notice:", e);
+  }
+
+  // Fallback feedback
+  if (percentage >= 80) {
+    return `${studentName} demonstrated outstanding mastery in ${testTitle} with a score of ${percentage}%. Excellent retention of core concepts and precision in answer selection!`;
+  } else if (percentage >= 50) {
+    return `${studentName} showed good foundational understanding in ${testTitle} (${percentage}%). Reviewing key formulas and edge-case examples will help push scores even higher!`;
+  } else {
+    return `${studentName} scored ${percentage}% on ${testTitle}. We recommend revisiting fundamental lecture notes and attempting practice exercises for better retention.`;
+  }
+}
+
+
+/**
  * Cleanly extract JSON array from AI output (handles markdown blocks, preamble & postamble text)
  */
 function parseQuestionsJson(rawText) {
