@@ -423,7 +423,7 @@
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
   <script type="module">
-    import { db, doc, setDoc } from "./firebase-config.js";
+    import { db, doc, setDoc, ensureFirebaseAuth } from "./firebase-config.js";
     import { generateQuestionsWithGemma } from "./gemma-api.js";
 
     // Load current teacher info
@@ -791,6 +791,7 @@
       const testNameKey = (testDetails.title || 'test').replace(/[^a-zA-Z0-9_-]/g, '_');
 
       try {
+        await ensureFirebaseAuth();
         await setDoc(doc(db, "tests", testCode), newTest);
         if (testNameKey) {
           await setDoc(doc(db, "tests", testNameKey), newTest);

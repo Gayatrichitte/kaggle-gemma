@@ -3,7 +3,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { 
   getAuth, 
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signInAnonymously,
   signOut, 
   onAuthStateChanged,
   updateProfile
@@ -37,12 +38,26 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
+// Ensures user is authenticated (anonymously if not logged in) to pass Firebase Auth Security Rules
+export async function ensureFirebaseAuth() {
+  if (!auth.currentUser) {
+    try {
+      await signInAnonymously(auth);
+      console.log("Authenticated with Firebase Anonymously:", auth.currentUser?.uid);
+    } catch (e) {
+      console.warn("Anonymous auth notice:", e);
+    }
+  }
+  return auth.currentUser;
+}
+
 export { 
   app, 
   auth, 
   db,
   signInWithEmailAndPassword, 
-  createUserWithEmailAndPassword, 
+  createUserWithEmailAndPassword,
+  signInAnonymously,
   signOut, 
   onAuthStateChanged,
   updateProfile,
