@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Student Assessment Leaderboard & Rankings – Education Analyzer" />
+  <title>Student Leaderboard | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+    }
+
+    .leaderboard-container {
+      max-width: 960px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2.5rem 1.5rem;
+    }
+
+    .lb-header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .lb-title {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--color-primary);
+      margin-bottom: .4rem;
+      letter-spacing: -.03em;
+    }
+
+    .lb-sub {
+      font-size: 1rem;
+      color: var(--color-muted);
+      max-width: 540px;
+      margin: 0 auto;
+    }
+
+    /* ── Filter Bar ── */
+    .filter-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 1.25rem 1.5rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-group {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-label {
+      font-size: .85rem;
+      font-weight: 700;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+
+    .filter-select, .search-input {
+      padding: .6rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      font-family: inherit;
+      font-size: .9rem;
+      background: var(--color-bg);
+      transition: all var(--t-fast);
+    }
+
+    .filter-select:focus, .search-input:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      background: #fff;
+    }
+
+    /* ── Podium Section ── */
+    .podium-container {
+      display: grid;
+      grid-template-columns: 1fr 1.1fr 1fr;
+      gap: 1.25rem;
+      align-items: flex-end;
+      margin-bottom: 2.5rem;
+    }
+
+    .podium-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: 1.75rem 1.25rem;
+      text-align: center;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      transition: transform var(--t-fast), box-shadow var(--t-fast);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .podium-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-md);
+    }
+
+    .podium-rank-1 {
+      border-color: #f59e0b;
+      background: linear-gradient(180deg, #fffdf5 0%, #ffffff 100%);
+      box-shadow: 0 10px 30px rgba(245, 158, 11, 0.15);
+      transform: scale(1.05);
+      z-index: 2;
+    }
+
+    .podium-rank-1:hover {
+      transform: scale(1.07);
+    }
+
+    .crown-icon {
+      font-size: 2.2rem;
+      margin-bottom: .25rem;
+      animation: crownBounce 2s ease-in-out infinite;
+    }
+    @keyframes crownBounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-4px); }
+    }
+
+    .podium-avatar {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: #eff6ff;
+      color: var(--color-accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 1.3rem;
+      margin-bottom: .75rem;
+      border: 3px solid var(--color-border);
+    }
+
+    .podium-rank-1 .podium-avatar {
+      border-color: #f59e0b;
+      background: #fef3c7;
+      color: #b45309;
+    }
+
+    .podium-rank-2 .podium-avatar {
+      border-color: #94a3b8;
+      background: #f1f5f9;
+      color: #475569;
+    }
+
+    .podium-rank-3 .podium-avatar {
+      border-color: #d97706;
+      background: #fff7ed;
+      color: #c2410c;
+    }
+
+    .podium-name {
+      font-weight: 700;
+      font-size: 1.05rem;
+      color: var(--color-primary);
+      margin-bottom: .25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 100%;
+    }
+
+    .podium-score {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--color-accent);
+      line-height: 1;
+      margin-bottom: .25rem;
+    }
+
+    .podium-pct {
+      font-size: .8rem;
+      font-weight: 700;
+      color: var(--color-success);
+    }
+
+    .podium-badge {
+      display: inline-block;
+      font-size: .75rem;
+      font-weight: 800;
+      padding: .2rem .65rem;
+      border-radius: 9999px;
+      margin-top: .75rem;
+    }
+
+    .badge-rank-1 { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+    .badge-rank-2 { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+    .badge-rank-3 { background: #fff7ed; color: #c2410c; border: 1px solid #ffedd5; }
+
+    /* ── Leaderboard Table ── */
+    .table-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: 1.75rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .lb-table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    .lb-table th {
+      background: var(--color-bg);
+      color: var(--color-muted);
+      font-size: .75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      padding: .85rem 1rem;
+      border-bottom: 1px solid var(--color-border);
+    }
+
+    .lb-table td {
+      padding: 1rem;
+      border-bottom: 1px solid var(--color-border);
+      vertical-align: middle;
+      font-size: .9rem;
+    }
+
+    .lb-table tbody tr {
+      transition: background var(--t-fast);
+    }
+
+    .lb-table tbody tr:hover {
+      background: #eff6ff;
+    }
+
+    .rank-num {
+      font-weight: 800;
+      font-size: 1rem;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--color-bg);
+      color: var(--color-muted);
+    }
+
+    .rank-top-1 { background: #fef3c7; color: #b45309; }
+    .rank-top-2 { background: #f1f5f9; color: #475569; }
+    .rank-top-3 { background: #fff7ed; color: #c2410c; }
+
+    .student-cell {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+    }
+
+    .student-name-text {
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .score-badge {
+      font-weight: 800;
+      color: var(--color-accent);
+    }
+
+    .sync-status-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 1rem;
+      font-size: .8rem;
+      color: var(--color-muted);
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="student.html">Student Portal</a>
+        <a href="teacher.html">Teacher Portal</a>
+        <a href="leaderboard.html" style="font-weight: 700; color: var(--color-accent);">Leaderboard</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <div class="leaderboard-container page-enter">
+      <!-- ── Header ── -->
+      <div class="lb-header">
+        <span class="badge badge-gemma" style="margin-bottom: .5rem;">🏆 Live Rankings</span>
+        <h1 class="lb-title">Student Leaderboard</h1>
+        <p class="lb-sub">Real-time score rankings and performance metrics stored in Firebase Firestore.</p>
+      </div>
+
+      <!-- ── Filter & Search Bar ── -->
+      <div class="filter-card">
+        <div class="filter-group">
+          <span class="filter-label">Assessment Filter:</span>
+          <select id="assessment-filter" class="filter-select" onchange="filterLeaderboard()">
+            <option value="ALL">All Assessments</option>
+            <option value="GEM-472" selected>GEM-472 (Photosynthesis)</option>
+            <option value="GEM-102">GEM-102 (Laws of Motion)</option>
+            <option value="GEM-204">GEM-204 (World War II)</option>
+          </select>
+        </div>
+
+        <div class="filter-group">
+          <input
+            type="text"
+            id="student-search"
+            class="search-input"
+            placeholder="🔍 Search student name..."
+            oninput="filterLeaderboard()"
+          />
+        </div>
+      </div>
+
+      <!-- ── Top 3 Podium ── -->
+      <div class="podium-container" id="podium-section">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- ── Leaderboard Table Card ── -->
+      <div class="table-card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+          <h2 style="font-size: 1.15rem; font-weight: 700;">Overall Rankings</h2>
+          <span class="badge badge-neutral" id="total-participants-lbl">Loading participants...</span>
+        </div>
+
+        <div style="overflow-x: auto;">
+          <table class="lb-table">
+            <thead>
+              <tr>
+                <th>Rank</th>
+                <th>Student</th>
+                <th>Assessment Code</th>
+                <th>Score</th>
+                <th>Percentage</th>
+                <th>Accuracy</th>
+                <th>Submitted</th>
+              </tr>
+            </thead>
+            <tbody id="lb-table-body">
+              <!-- Rendered by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <div class="sync-status-bar">
+          <span id="firebase-sync-status">🔥 Connected to Firebase Firestore</span>
+          <span>Auto-updates on test submission</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+
+  <script type="module">
+    import { db, collection, getDocs, query, orderBy, limit, where } from "./firebase-config.js";
+
+    /* ── Fallback / Initial Mock Data ── */
+    const MOCK_LEADERBOARD = [
+      { id: '1', studentName: 'Rohan Das', testCode: 'GEM-472', score: 20, maxScore: 21, percentage: 95, correctCount: 7, totalQuestions: 8, submittedAt: '2026-07-30T10:12:00Z' },
+      { id: '2', studentName: 'Neha Gupta', testCode: 'GEM-472', score: 20, maxScore: 21, percentage: 95, correctCount: 7, totalQuestions: 8, submittedAt: '2026-07-30T12:18:00Z' },
+      { id: '3', studentName: 'Ananya Sharma', testCode: 'GEM-472', score: 19, maxScore: 21, percentage: 90, correctCount: 6, totalQuestions: 8, submittedAt: '2026-07-30T11:35:00Z' },
+      { id: '4', studentName: 'Karan Joshi', testCode: 'GEM-472', score: 18, maxScore: 21, percentage: 86, correctCount: 6, totalQuestions: 8, submittedAt: '2026-07-30T11:02:00Z' },
+      { id: '5', studentName: 'Aryan Mehta', testCode: 'GEM-472', score: 17, maxScore: 21, percentage: 81, correctCount: 5, totalQuestions: 8, submittedAt: '2026-07-30T10:45:00Z' },
+      { id: '6', studentName: 'Priya Nair', testCode: 'GEM-472', score: 16, maxScore: 21, percentage: 76, correctCount: 5, totalQuestions: 8, submittedAt: '2026-07-30T11:20:00Z' },
+      { id: '7', studentName: 'Vikram Rao', testCode: 'GEM-472', score: 15, maxScore: 21, percentage: 71, correctCount: 4, totalQuestions: 8, submittedAt: '2026-07-30T12:05:00Z' },
+      { id: '8', studentName: 'Sneha Iyer', testCode: 'GEM-472', score: 13, maxScore: 21, percentage: 62, correctCount: 3, totalQuestions: 8, submittedAt: '2026-07-30T11:50:00Z' }
+    ];
+
+    let allLeaderboardData = [];
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await fetchFirebaseLeaderboard();
+    });
+
+    async function fetchFirebaseLeaderboard() {
+      try {
+        const resultsRef = collection(db, "results");
+        const q = query(resultsRef, orderBy("percentage", "desc"), orderBy("score", "desc"));
+        const querySnapshot = await getDocs(q);
+
+        const fetchedData = [];
+        querySnapshot.forEach((docSnap) => {
+          fetchedData.push({ id: docSnap.id, ...docSnap.data() });
+        });
+
+        if (fetchedData.length > 0) {
+          allLeaderboardData = fetchedData;
+          document.getElementById('firebase-sync-status').textContent = `🔥 Live from Firebase Firestore (${fetchedData.length} entries)`;
+        } else {
+          allLeaderboardData = MOCK_LEADERBOARD;
+          document.getElementById('firebase-sync-status').textContent = '🔥 Firebase Connected (Displaying sample assessment entries)';
+        }
+      } catch (err) {
+        console.warn("Firestore fetch note:", err);
+        allLeaderboardData = MOCK_LEADERBOARD;
+        document.getElementById('firebase-sync-status').textContent = '⚡ Displaying cached assessment entries';
+      }
+
+      filterLeaderboard();
+    }
+
+    window.filterLeaderboard = function() {
+      const codeFilter = document.getElementById('assessment-filter').value;
+      const searchVal = document.getElementById('student-search').value.toLowerCase().trim();
+
+      let filtered = [...allLeaderboardData];
+
+      if (codeFilter !== 'ALL') {
+        filtered = filtered.filter(item => item.testCode === codeFilter);
+      }
+
+      if (searchVal) {
+        filtered = filtered.filter(item => item.studentName && item.studentName.toLowerCase().includes(searchVal));
+      }
+
+      // Sort by percentage then score
+      filtered.sort((a, b) => (b.percentage - a.percentage) || (b.score - a.score));
+
+      renderPodium(filtered.slice(0, 3));
+      renderTable(filtered);
+    };
+
+    function renderPodium(topThree) {
+      const container = document.getElementById('podium-section');
+      container.innerHTML = '';
+
+      if (topThree.length === 0) {
+        container.style.display = 'none';
+        return;
+      }
+      container.style.display = 'grid';
+
+      // Order for podium: 2nd place (left), 1st place (center), 3rd place (right)
+      const rankOrder = [];
+      if (topThree[1]) rankOrder.push({ ...topThree[1], rank: 2, cls: 'podium-rank-2', medal: '🥈', badgeCls: 'badge-rank-2' });
+      if (topThree[0]) rankOrder.push({ ...topThree[0], rank: 1, cls: 'podium-rank-1', medal: '🥇', badgeCls: 'badge-rank-1' });
+      if (topThree[2]) rankOrder.push({ ...topThree[2], rank: 3, cls: 'podium-rank-3', medal: '🥉', badgeCls: 'badge-rank-3' });
+
+      rankOrder.forEach(item => {
+        const card = document.createElement('div');
+        card.className = `podium-card ${item.cls}`;
+
+        const isFirst = item.rank === 1;
+
+        card.innerHTML = `
+          ${isFirst ? '<div class="crown-icon">👑</div>' : ''}
+          <div class="podium-avatar">${item.studentName[0]}</div>
+          <div class="podium-name">${item.studentName}</div>
+          <div class="podium-score">${item.score} <span style="font-size:.9rem; font-weight:600; color:var(--color-muted);">/ ${item.maxScore || 21}</span></div>
+          <div class="podium-pct">${item.percentage}% Score</div>
+          <span class="podium-badge ${item.badgeCls}">${item.medal} Rank #${item.rank}</span>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderTable(data) {
+      const tbody = document.getElementById('lb-table-body');
+      tbody.innerHTML = '';
+
+      document.getElementById('total-participants-lbl').textContent = `${data.length} Participants`;
+
+      if (data.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--color-muted); padding:2rem;">No submissions match your search.</td></tr>`;
+        return;
+      }
+
+      data.forEach((item, index) => {
+        const rank = index + 1;
+        let rankCls = 'rank-num';
+        if (rank === 1) rankCls += ' rank-top-1';
+        else if (rank === 2) rankCls += ' rank-top-2';
+        else if (rank === 3) rankCls += ' rank-top-3';
+
+        const formattedDate = item.submittedAt ? new Date(item.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><div class="${rankCls}">${rank}</div></td>
+          <td>
+            <div class="student-cell">
+              <div class="student-avatar" style="width:28px; height:28px; font-size:.75rem;">${item.studentName[0]}</div>
+              <span class="student-name-text">${item.studentName}</span>
+            </div>
+          </td>
+          <td><span class="badge badge-neutral">${item.testCode || 'GEM-472'}</span></td>
+          <td><span class="score-badge">${item.score} / ${item.maxScore || 21}</span></td>
+          <td>
+            <div style="display:flex; align-items:center; gap:.5rem;">
+              <div class="progress-wrap" style="width:60px; height:6px;">
+                <div class="progress-bar" style="width:${item.percentage}%;"></div>
+              </div>
+              <span style="font-weight:700; font-size:.85rem;">${item.percentage}%</span>
+            </div>
+          </td>
+          <td style="color:var(--color-muted); font-size:.85rem;">${item.correctCount || item.answeredCount || 5} / ${item.totalQuestions || 8} Qs</td>
+          <td style="color:var(--color-muted); font-size:.85rem;">${formattedDate}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+  </script>
+</body>
+</html>

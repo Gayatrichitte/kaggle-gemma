@@ -13,7 +13,13 @@ import {
   doc, 
   setDoc, 
   getDoc, 
+  getDocs,
+  addDoc,
   collection, 
+  query,
+  where,
+  orderBy,
+  limit,
   serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
@@ -43,6 +49,12 @@ export {
   doc,
   setDoc,
   getDoc,
+  getDocs,
+  addDoc,
   collection,
+  query,
+  where,
+  orderBy,
+  limit,
   serverTimestamp
 };
