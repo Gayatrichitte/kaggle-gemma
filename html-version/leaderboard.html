@@ -318,9 +318,6 @@
           <span class="filter-label">Assessment Filter:</span>
           <select id="assessment-filter" class="filter-select" onchange="filterLeaderboard()">
             <option value="ALL">All Assessments</option>
-            <option value="GEM-472" selected>GEM-472 (Photosynthesis)</option>
-            <option value="GEM-102">GEM-102 (Laws of Motion)</option>
-            <option value="GEM-204">GEM-204 (World War II)</option>
           </select>
         </div>
 
@@ -332,6 +329,14 @@
             placeholder="🔍 Search student name..."
             oninput="filterLeaderboard()"
           />
+        </div>
+      </div>
+
+      <!-- ── Ranking Rule Banner ── -->
+      <div style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-lg); padding:.85rem 1.25rem; margin-bottom:1.5rem; display:flex; align-items:center; gap:.75rem; font-size:.875rem; color:#166534; box-shadow:var(--shadow-sm);">
+        <span style="font-size:1.4rem;">⏱️</span>
+        <div>
+          <strong style="color:#14532d;">Leaderboard Tie-Breaker Rule:</strong> Students are ranked primarily by <strong>Highest Score / Marks (🎯)</strong>. If two or more students achieve equal marks, rank is decided by <strong>Less Time Taken (⏱️)</strong> to complete the test.
         </div>
       </div>
 
@@ -354,8 +359,9 @@
                 <th>Rank</th>
                 <th>Student</th>
                 <th>Assessment Code</th>
-                <th>Score</th>
+                <th>Score 🎯</th>
                 <th>Percentage</th>
+                <th>Time Taken ⏱️</th>
                 <th>Accuracy</th>
                 <th>Submitted</th>
               </tr>
@@ -368,7 +374,7 @@
 
         <div class="sync-status-bar">
           <span id="firebase-sync-status">🔥 Connected to Firebase Firestore</span>
-          <span>Auto-updates on test submission</span>
+          <span>Auto-updates on student submission</span>
         </div>
       </div>
     </div>
@@ -378,19 +384,7 @@
   <script src="app.js"></script>
 
   <script type="module">
-    import { db, collection, getDocs, query, orderBy, limit, where } from "./firebase-config.js";
-
-    /* ── Fallback / Initial Mock Data ── */
-    const MOCK_LEADERBOARD = [
-      { id: '1', studentName: 'Rohan Das', testCode: 'GEM-472', score: 20, maxScore: 21, percentage: 95, correctCount: 7, totalQuestions: 8, submittedAt: '2026-07-30T10:12:00Z' },
-      { id: '2', studentName: 'Neha Gupta', testCode: 'GEM-472', score: 20, maxScore: 21, percentage: 95, correctCount: 7, totalQuestions: 8, submittedAt: '2026-07-30T12:18:00Z' },
-      { id: '3', studentName: 'Ananya Sharma', testCode: 'GEM-472', score: 19, maxScore: 21, percentage: 90, correctCount: 6, totalQuestions: 8, submittedAt: '2026-07-30T11:35:00Z' },
-      { id: '4', studentName: 'Karan Joshi', testCode: 'GEM-472', score: 18, maxScore: 21, percentage: 86, correctCount: 6, totalQuestions: 8, submittedAt: '2026-07-30T11:02:00Z' },
-      { id: '5', studentName: 'Aryan Mehta', testCode: 'GEM-472', score: 17, maxScore: 21, percentage: 81, correctCount: 5, totalQuestions: 8, submittedAt: '2026-07-30T10:45:00Z' },
-      { id: '6', studentName: 'Priya Nair', testCode: 'GEM-472', score: 16, maxScore: 21, percentage: 76, correctCount: 5, totalQuestions: 8, submittedAt: '2026-07-30T11:20:00Z' },
-      { id: '7', studentName: 'Vikram Rao', testCode: 'GEM-472', score: 15, maxScore: 21, percentage: 71, correctCount: 4, totalQuestions: 8, submittedAt: '2026-07-30T12:05:00Z' },
-      { id: '8', studentName: 'Sneha Iyer', testCode: 'GEM-472', score: 13, maxScore: 21, percentage: 62, correctCount: 3, totalQuestions: 8, submittedAt: '2026-07-30T11:50:00Z' }
-    ];
+    import { db, collection, getDocs } from "./firebase-config.js";
 
     let allLeaderboardData = [];
 
@@ -399,30 +393,80 @@
     });
 
     async function fetchFirebaseLeaderboard() {
+      let fetchedData = [];
+
+      // 1. Fetch from LocalStorage (ea_results)
       try {
-        const resultsRef = collection(db, "results");
-        const q = query(resultsRef, orderBy("percentage", "desc"), orderBy("score", "desc"));
-        const querySnapshot = await getDocs(q);
-
-        const fetchedData = [];
-        querySnapshot.forEach((docSnap) => {
-          fetchedData.push({ id: docSnap.id, ...docSnap.data() });
-        });
-
-        if (fetchedData.length > 0) {
-          allLeaderboardData = fetchedData;
-          document.getElementById('firebase-sync-status').textContent = `🔥 Live from Firebase Firestore (${fetchedData.length} entries)`;
-        } else {
-          allLeaderboardData = MOCK_LEADERBOARD;
-          document.getElementById('firebase-sync-status').textContent = '🔥 Firebase Connected (Displaying sample assessment entries)';
+        const localStr = localStorage.getItem('ea_results');
+        if (localStr) {
+          const parsed = JSON.parse(localStr);
+          if (Array.isArray(parsed)) {
+            fetchedData = [...parsed];
+          }
         }
-      } catch (err) {
-        console.warn("Firestore fetch note:", err);
-        allLeaderboardData = MOCK_LEADERBOARD;
-        document.getElementById('firebase-sync-status').textContent = '⚡ Displaying cached assessment entries';
+      } catch (e) {
+        console.warn("LocalStorage fetch note:", e);
       }
 
+      // 2. Fetch from Firebase Firestore
+      try {
+        const resultsRef = collection(db, "results");
+        const querySnapshot = await getDocs(resultsRef);
+
+        querySnapshot.forEach((docSnap) => {
+          const fireData = { id: docSnap.id, ...docSnap.data() };
+          const existingIdx = fetchedData.findIndex(x => x.id === fireData.id || (x.studentName === fireData.studentName && x.testCode === fireData.testCode && x.submittedAt === fireData.submittedAt));
+          if (existingIdx >= 0) {
+            fetchedData[existingIdx] = fireData;
+          } else {
+            fetchedData.push(fireData);
+          }
+        });
+      } catch (err) {
+        console.warn("Firestore fetch note:", err);
+      }
+
+      allLeaderboardData = fetchedData;
+
+      if (fetchedData.length > 0) {
+        document.getElementById('firebase-sync-status').textContent = `🔥 Live Leaderboard (${fetchedData.length} total entries)`;
+      } else {
+        document.getElementById('firebase-sync-status').textContent = '🔥 Connected to Leaderboard (0 submissions yet)';
+      }
+
+      populateAssessmentFilter(allLeaderboardData);
       filterLeaderboard();
+    }
+
+    function populateAssessmentFilter(data) {
+      const select = document.getElementById('assessment-filter');
+      const currentVal = select.value || 'ALL';
+
+      const codesSet = new Set();
+      
+      try {
+        const testsStr = localStorage.getItem('ea_tests');
+        if (testsStr) {
+          const tests = JSON.parse(testsStr);
+          tests.forEach(t => { if (t.code) codesSet.add(t.code); });
+        }
+      } catch(e) {}
+
+      data.forEach(item => {
+        if (item.testCode) codesSet.add(item.testCode);
+      });
+
+      let optionsHtml = '<option value="ALL">All Assessments</option>';
+      codesSet.forEach(code => {
+        optionsHtml += `<option value="${code}">${code}</option>`;
+      });
+
+      select.innerHTML = optionsHtml;
+      if (Array.from(select.options).some(opt => opt.value === currentVal)) {
+        select.value = currentVal;
+      } else {
+        select.value = 'ALL';
+      }
     }
 
     window.filterLeaderboard = function() {
@@ -439,8 +483,25 @@
         filtered = filtered.filter(item => item.studentName && item.studentName.toLowerCase().includes(searchVal));
       }
 
-      // Sort by percentage then score
-      filtered.sort((a, b) => (b.percentage - a.percentage) || (b.score - a.score));
+      // Dynamic sort:
+      // 1. Primary: Score / Percentage descending
+      // 2. Secondary: Time taken ascending (tie-breaker - less time wins)
+      // 3. Tertiary: Earliest submission date
+      filtered.sort((a, b) => {
+        const scoreA = Number(a.score ?? 0);
+        const scoreB = Number(b.score ?? 0);
+        if (scoreB !== scoreA) return scoreB - scoreA;
+
+        const pctA = Number(a.percentage ?? 0);
+        const pctB = Number(b.percentage ?? 0);
+        if (pctB !== pctA) return pctB - pctA;
+
+        const timeA = a.timeTakenSeconds !== undefined ? Number(a.timeTakenSeconds) : 999999;
+        const timeB = b.timeTakenSeconds !== undefined ? Number(b.timeTakenSeconds) : 999999;
+        if (timeA !== timeB) return timeA - timeB;
+
+        return new Date(a.submittedAt || 0) - new Date(b.submittedAt || 0);
+      });
 
       renderPodium(filtered.slice(0, 3));
       renderTable(filtered);
@@ -467,13 +528,18 @@
         card.className = `podium-card ${item.cls}`;
 
         const isFirst = item.rank === 1;
+        const nameChar = (item.studentName && item.studentName[0]) ? item.studentName[0].toUpperCase() : 'S';
+        const formattedTime = item.timeTakenFormatted || (item.timeTakenSeconds ? `${item.timeTakenSeconds}s` : 'N/A');
 
         card.innerHTML = `
           ${isFirst ? '<div class="crown-icon">👑</div>' : ''}
-          <div class="podium-avatar">${item.studentName[0]}</div>
-          <div class="podium-name">${item.studentName}</div>
-          <div class="podium-score">${item.score} <span style="font-size:.9rem; font-weight:600; color:var(--color-muted);">/ ${item.maxScore || 21}</span></div>
+          <div class="podium-avatar">${nameChar}</div>
+          <div class="podium-name" title="${item.studentName}">${item.studentName}</div>
+          <div class="podium-score">${item.score} <span style="font-size:.9rem; font-weight:600; color:var(--color-muted);">/ ${item.maxScore || 20}</span></div>
           <div class="podium-pct">${item.percentage}% Score</div>
+          <div style="font-size:.78rem; font-weight:700; color:#475569; margin-top:.25rem; display:flex; align-items:center; gap:.25rem;">
+            <span>⏱️</span> <span>${formattedTime}</span>
+          </div>
           <span class="podium-badge ${item.badgeCls}">${item.medal} Rank #${item.rank}</span>
         `;
         container.appendChild(card);
@@ -484,10 +550,17 @@
       const tbody = document.getElementById('lb-table-body');
       tbody.innerHTML = '';
 
-      document.getElementById('total-participants-lbl').textContent = `${data.length} Participants`;
+      document.getElementById('total-participants-lbl').textContent = `${data.length} Participant${data.length === 1 ? '' : 's'}`;
 
       if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="7" style="text-align:center; color:var(--color-muted); padding:2rem;">No submissions match your search.</td></tr>`;
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="8" style="text-align:center; color:var(--color-muted); padding:3rem 1.5rem;">
+              <div style="font-size:2.5rem; margin-bottom:.5rem;">🏆</div>
+              <div style="font-weight:700; font-size:1.1rem; color:var(--color-primary); margin-bottom:.25rem;">No Student Submissions Found</div>
+              <div style="font-size:.9rem;">Be the first student to take an assessment and top the leaderboard!</div>
+            </td>
+          </tr>`;
         return;
       }
 
@@ -499,18 +572,20 @@
         else if (rank === 3) rankCls += ' rank-top-3';
 
         const formattedDate = item.submittedAt ? new Date(item.submittedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Recent';
+        const formattedTime = item.timeTakenFormatted || (item.timeTakenSeconds ? `${item.timeTakenSeconds}s` : 'N/A');
+        const nameChar = (item.studentName && item.studentName[0]) ? item.studentName[0].toUpperCase() : 'S';
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><div class="${rankCls}">${rank}</div></td>
           <td>
             <div class="student-cell">
-              <div class="student-avatar" style="width:28px; height:28px; font-size:.75rem;">${item.studentName[0]}</div>
+              <div class="student-avatar" style="width:28px; height:28px; font-size:.75rem;">${nameChar}</div>
               <span class="student-name-text">${item.studentName}</span>
             </div>
           </td>
           <td><span class="badge badge-neutral">${item.testCode || 'GEM-472'}</span></td>
-          <td><span class="score-badge">${item.score} / ${item.maxScore || 21}</span></td>
+          <td><span class="score-badge">${item.score} / ${item.maxScore || 20}</span></td>
           <td>
             <div style="display:flex; align-items:center; gap:.5rem;">
               <div class="progress-wrap" style="width:60px; height:6px;">
@@ -519,7 +594,12 @@
               <span style="font-weight:700; font-size:.85rem;">${item.percentage}%</span>
             </div>
           </td>
-          <td style="color:var(--color-muted); font-size:.85rem;">${item.correctCount || item.answeredCount || 5} / ${item.totalQuestions || 8} Qs</td>
+          <td>
+            <span class="badge" style="background:#f1f5f9; color:#334155; font-weight:700; font-size:.8rem;">
+              ⏱️ ${formattedTime}
+            </span>
+          </td>
+          <td style="color:var(--color-muted); font-size:.85rem;">${item.correctCount || item.answeredCount || 0} / ${item.totalQuestions || 0} Qs</td>
           <td style="color:var(--color-muted); font-size:.85rem;">${formattedDate}</td>
         `;
         tbody.appendChild(tr);
