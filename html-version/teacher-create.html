@@ -284,24 +284,24 @@
           <!-- Dual Option Selector Cards -->
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
             <!-- Option A Card -->
-            <label id="card-opt-pdf" class="card card-hover" onclick="selectSourceMode('pdf')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-accent); background:#eff6ff; border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease; display:block;">
+            <div id="card-opt-pdf" class="card card-hover" onclick="selectSourceMode('pdf')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-accent); background:#eff6ff; border-radius:var(--radius-xl); text-align:left; transition:all 0.2s ease;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                 <span style="font-size:1.8rem;">📄</span>
-                <input type="radio" name="source_mode" id="radio-opt-pdf" value="pdf" checked onchange="selectSourceMode('pdf')" style="width:18px; height:18px; cursor:pointer;" />
+                <input type="radio" name="source_mode_radio" id="radio-opt-pdf" value="pdf" checked style="width:18px; height:18px; pointer-events:none;" />
               </div>
-              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem; text-align:left;">Option A: Upload Syllabus PDF</div>
-              <p style="font-size:0.82rem; color:var(--color-muted); margin:0; text-align:left;">Upload your PDF syllabus document to extract text directly.</p>
-            </label>
+              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem;">Option A: Upload Syllabus PDF</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Upload your PDF syllabus document to extract text directly.</p>
+            </div>
 
             <!-- Option B Card -->
-            <label id="card-opt-topic" class="card card-hover" onclick="selectSourceMode('topic')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-border); background:var(--color-surface); border-radius:var(--radius-xl); text-align:center; transition:all 0.2s ease; display:block;">
+            <div id="card-opt-topic" class="card card-hover" onclick="selectSourceMode('topic')" style="cursor:pointer; padding:1.25rem; border:2px solid var(--color-border); background:var(--color-surface); border-radius:var(--radius-xl); text-align:left; transition:all 0.2s ease;">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                 <span style="font-size:1.8rem;">✨</span>
-                <input type="radio" name="source_mode" id="radio-opt-topic" value="topic" onchange="selectSourceMode('topic')" style="width:18px; height:18px; cursor:pointer;" />
+                <input type="radio" name="source_mode_radio" id="radio-opt-topic" value="topic" style="width:18px; height:18px; pointer-events:none;" />
               </div>
-              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem; text-align:left;">Option B: Subject / Topic Details</div>
-              <p style="font-size:0.82rem; color:var(--color-muted); margin:0; text-align:left;">Enter a topic name to generate questions using Gemma's AI database.</p>
-            </label>
+              <div style="font-weight:800; font-size:1.05rem; color:var(--color-primary); margin-bottom:0.25rem;">Option B: Subject / Topic Details</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin:0;">Enter a topic name to generate questions using Gemma's AI database.</p>
+            </div>
           </div>
 
           <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.5rem; margin-bottom:1.5rem;">
@@ -478,42 +478,15 @@
 
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
-  <script type="module">
-    import { db, doc, setDoc, ensureFirebaseAuth } from "./firebase-config.js";
-    import { generateQuestionsWithGemma } from "./gemma-api.js";
-
-    // Load current teacher info
-    const userStr = localStorage.getItem('ea_user');
-    if (userStr) {
-      try {
-        const u = JSON.parse(userStr);
-        if (u.name) document.getElementById('teacher-display').textContent = `👩‍🏫 ${u.name}`;
-      } catch(e) {}
-    }
-
-    let testDetails = {
-      title: '',
-      subject: '',
-      topicDetails: '',
-      fileContent: '',
-      hasFile: false,
-      inputMode: 'pdf',
-      selectedTypes: ['MCQ', 'TF'],
-      totalMarks: 20,
-      duration: 30
-    };
-
-    let generatedQuestions = [];
-
-    // Switch between Option A (PDF) and Option B (Topic / Gemma DB)
+  <script>
     window.selectSourceMode = function(mode) {
-      testDetails.inputMode = mode;
-      const cardPdf = document.getElementById('card-opt-pdf');
-      const cardTopic = document.getElementById('card-opt-topic');
-      const radioPdf = document.getElementById('radio-opt-pdf');
-      const radioTopic = document.getElementById('radio-opt-topic');
-      const secPdf = document.getElementById('sec-opt-pdf');
-      const secTopic = document.getElementById('sec-opt-topic');
+      if (window.testDetails) window.testDetails.inputMode = mode;
+      var cardPdf = document.getElementById('card-opt-pdf');
+      var cardTopic = document.getElementById('card-opt-topic');
+      var radioPdf = document.getElementById('radio-opt-pdf');
+      var radioTopic = document.getElementById('radio-opt-topic');
+      var secPdf = document.getElementById('sec-opt-pdf');
+      var secTopic = document.getElementById('sec-opt-topic');
 
       if (mode === 'pdf') {
         if (radioPdf) radioPdf.checked = true;
@@ -530,8 +503,35 @@
         if (secTopic) secTopic.style.display = 'block';
         if (secPdf) secPdf.style.display = 'none';
       }
-      validateStep1();
+      if (typeof window.validateStep1 === 'function') window.validateStep1();
     };
+  </script>
+  <script type="module">
+    import { db, doc, setDoc, ensureFirebaseAuth } from "./firebase-config.js";
+    import { generateQuestionsWithGemma } from "./gemma-api.js";
+
+    // Load current teacher info
+    const userStr = localStorage.getItem('ea_user');
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u.name) document.getElementById('teacher-display').textContent = `👩‍🏫 ${u.name}`;
+      } catch(e) {}
+    }
+
+    window.testDetails = {
+      title: '',
+      subject: '',
+      topicDetails: '',
+      fileContent: '',
+      hasFile: false,
+      inputMode: 'pdf',
+      selectedTypes: ['MCQ', 'TF'],
+      totalMarks: 20,
+      duration: 30
+    };
+
+    let generatedQuestions = [];
 
     // Step 1 Validation (Requires Title + (PDF OR Topic details))
     window.validateStep1 = function() {
