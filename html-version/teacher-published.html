@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Test Published | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Page ── */
+    .page { min-height: 100vh; display: flex; flex-direction: column; background: var(--color-bg); position: relative; overflow: hidden; }
+    .pub-body {
+      max-width: 580px; margin: 0 auto; width: 100%;
+      padding: 2.5rem 2rem; display: flex; flex-direction: column;
+      align-items: center; gap: 2rem;
+      opacity: 0; transform: translateY(22px);
+      transition: opacity .5s .06s ease, transform .5s .06s ease;
+    }
+    .pub-body.visible { opacity: 1; transform: translateY(0); }
+
+    /* ── Confetti ── */
+    .confetti-wrap { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle { position: absolute; top: -20px; animation: fall linear forwards; }
+    @keyframes fall {
+      0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+      80%  { opacity: 1; }
+      100% { transform: translateY(110vh) rotate(540deg); opacity: 0; }
+    }
+
+    /* ── SVG check ── */
+    .check-wrap { width: 88px; height: 88px; z-index: 1; }
+    .check-svg { width: 100%; height: 100%; }
+    .check-circle {
+      stroke-dasharray: 160; stroke-dashoffset: 160;
+      animation: drawCircle .55s cubic-bezier(.4,0,.2,1) .1s forwards;
+    }
+    .check-mark {
+      stroke-dasharray: 50; stroke-dashoffset: 50;
+      animation: drawMark .4s cubic-bezier(.4,0,.2,1) .58s forwards;
+    }
+    @keyframes drawCircle { to { stroke-dashoffset: 0; } }
+    @keyframes drawMark   { to { stroke-dashoffset: 0; } }
+
+    /* ── Header ── */
+    .pub-header { text-align: center; z-index: 1; }
+    .pub-title  { font-size: 2.2rem; font-weight: 800; margin-bottom: .35rem; letter-spacing: -.03em; }
+    .pub-sub    { color: var(--color-muted); font-size: .95rem; }
+
+    /* ── Details card ── */
+    .details-card { width: 100%; z-index: 1; }
+    .details-subject { font-size: .72rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--color-accent); display: block; margin-bottom: 3px; }
+    .details-name  { font-size: 1.1rem; font-weight: 600; }
+    .pills-row {
+      display: flex; align-items: center;
+      padding-top: 1rem; margin-top: 1rem;
+      border-top: 1px solid var(--color-border);
+    }
+    .pill { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .pill-div { width: 1px; height: 36px; background: var(--color-border); }
+    .pill-icon  { font-size: 1.05rem; }
+    .pill-value { font-size: 1.35rem; font-weight: 800; line-height: 1; }
+    .pill-label { font-size: .68rem; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); font-weight: 700; }
+
+    /* ── Code section ── */
+    .code-section { width: 100%; display: flex; flex-direction: column; align-items: center; gap: .875rem; z-index: 1; }
+    .code-label { font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: var(--color-muted); }
+    .code-card {
+      position: relative; width: 100%;
+      background: var(--color-primary);
+      border-radius: var(--radius-2xl);
+      padding: 2rem 2.5rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(15,23,42,.18);
+    }
+    .code-glow {
+      position: absolute; width: 280px; height: 280px; border-radius: 50%;
+      background: radial-gradient(circle,rgba(37,99,235,.35) 0%,transparent 70%);
+      top: 50%; left: 50%; transform: translate(-50%,-50%);
+      pointer-events: none;
+    }
+    .code-icon  { font-size: 1.5rem; opacity: .8; position: relative; z-index: 1; }
+    .code-digits { display: flex; align-items: center; gap: .35rem; position: relative; z-index: 1; }
+    .code-char {
+      display: inline-flex; align-items: center; justify-content: center;
+      font-size: 2.75rem; font-weight: 800; color: #fff;
+      width: 56px; height: 64px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.15);
+      border-radius: var(--radius-lg);
+      backdrop-filter: blur(4px);
+      opacity: 0; transform: translateY(14px) scale(.85);
+      animation: charPop .4s cubic-bezier(.34,1.56,.64,1) forwards;
+    }
+    .code-sep {
+      font-size: 2.5rem; font-weight: 700; color: rgba(255,255,255,.35);
+      opacity: 0;
+      animation: charPop .4s ease .45s forwards;
+    }
+    @keyframes charPop { to { opacity:1; transform:translateY(0) scale(1); } }
+    .code-hint { font-size: .78rem; color: rgba(255,255,255,.45); position: relative; z-index: 1; text-align: center; }
+
+    /* ── Actions ── */
+    .pub-actions { display: flex; flex-wrap: wrap; gap: .875rem; justify-content: center; z-index: 1; }
+
+    /* ── Gemma credit ── */
+    .gemma-credit { display: flex; align-items: center; gap: .5rem; font-size: .78rem; color: var(--color-muted); z-index: 1; }
+    .gemma-mini-orb {
+      width: 10px; height: 10px; border-radius: 50%;
+      background: conic-gradient(from 0deg,#4285F4,#34A853,#FBBC04,#EA4335,#4285F4);
+      animation: orbSpin 3s linear infinite; flex-shrink: 0;
+    }
+    @keyframes orbSpin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar" style="position:relative;z-index:101">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="teacher.html">Teacher Portal</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <!-- Confetti -->
+    <div class="confetti-wrap" id="confetti"></div>
+
+    <div class="pub-body" id="pub-body">
+      <!-- SVG check -->
+      <div class="check-wrap" style="z-index:1">
+        <svg class="check-svg" viewBox="0 0 52 52" fill="none">
+          <circle class="check-circle" cx="26" cy="26" r="24" stroke="#10b981" stroke-width="2.5" />
+          <polyline class="check-mark" points="14,27 22,35 38,19" stroke="#10b981" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+
+      <!-- Header -->
+      <div class="pub-header">
+        <h1 class="pub-title">Test Published!</h1>
+        <p class="pub-sub">Your assessment is now live and ready for students.</p>
+      </div>
+
+      <!-- Details card -->
+      <div class="card details-card">
+        <span class="details-subject">Biology</span>
+        <div class="details-name">Introduction to Photosynthesis</div>
+        <div class="pills-row">
+          <div class="pill">
+            <span class="pill-icon">❓</span>
+            <span class="pill-value">8</span>
+            <span class="pill-label">Questions</span>
+          </div>
+          <div class="pill-div"></div>
+          <div class="pill">
+            <span class="pill-icon">📊</span>
+            <span class="pill-value">21</span>
+            <span class="pill-label">Marks</span>
+          </div>
+          <div class="pill-div"></div>
+          <div class="pill">
+            <span class="pill-icon">⏱</span>
+            <span class="pill-value">30</span>
+            <span class="pill-label">Minutes</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Code hero -->
+      <div class="code-section">
+        <p class="code-label">Share this code with your students</p>
+        <div class="code-card">
+          <div class="code-glow"></div>
+          <span class="code-icon">🔑</span>
+          <div class="code-digits" id="code-digits"></div>
+          <p class="code-hint">Students enter this code to access the test</p>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="pub-actions">
+        <button class="btn btn-primary" id="copy-btn" onclick="doCopy()">
+          <span class="btn-icon">⎘</span> Copy Code
+        </button>
+        <a href="teacher-create.html" class="btn btn-secondary">
+          <span class="btn-icon">👁</span> Preview Test
+        </a>
+        <a href="teacher.html" class="btn btn-ghost">
+          <span class="btn-icon">🏠</span> Go to Dashboard
+        </a>
+      </div>
+
+      <!-- Gemma credit -->
+      <div class="gemma-credit">
+        <div class="gemma-mini-orb"></div>
+        Assessment generated by <strong>Google Gemma</strong>
+      </div>
+    </div><!-- /pub-body -->
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    const TEST_CODE = 'GEM-472';
+
+    /* ── Entrance animation ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(() => document.getElementById('pub-body').classList.add('visible'), 60);
+      buildCodeDigits();
+      spawnConfetti();
+    });
+
+    /* ── Build code digits with staggered animation ── */
+    function buildCodeDigits() {
+      const container = document.getElementById('code-digits');
+      TEST_CODE.split('').forEach((ch, i) => {
+        const el = document.createElement('span');
+        el.className = ch === '-' ? 'code-sep' : 'code-char';
+        el.textContent = ch;
+        el.style.animationDelay = (0.4 + i * 0.08) + 's';
+        container.appendChild(el);
+      });
+    }
+
+    /* ── Confetti ── */
+    function spawnConfetti() {
+      const colors = ['#4285F4','#34A853','#FBBC04','#EA4335','#9b59b6','#2563eb'];
+      const shapes = ['square','circle','rect'];
+      const wrap   = document.getElementById('confetti');
+      for (let i = 0; i < 52; i++) {
+        const el = document.createElement('div');
+        el.className = 'particle';
+        const color = colors[i % colors.length];
+        const shape = shapes[i % shapes.length];
+        const size  = (6 + Math.floor(Math.random() * 8)) + 'px';
+        Object.assign(el.style, {
+          left:              (Math.random() * 100) + '%',
+          animationDelay:    (Math.random() * 0.8) + 's',
+          animationDuration: (0.9 + Math.random() * 0.8) + 's',
+          width:  shape === 'rect' ? (parseInt(size)*2)+'px' : size,
+          height: size,
+          background:   color,
+          borderRadius: shape === 'circle' ? '50%' : '2px',
+          transform:    `rotate(${Math.random()*360}deg)`,
+        });
+        wrap.appendChild(el);
+      }
+    }
+
+    /* ── Copy button ── */
+    function doCopy() {
+      const btn = document.getElementById('copy-btn');
+      copyToClipboard(TEST_CODE, btn, '<span class="btn-icon">⎘</span> Copy Code');
+    }
+  </script>
+</body>
+</html>

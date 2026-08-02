@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Create Test | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    /* ── Wizard shell ── */
+    .page { min-height: 100vh; display: flex; flex-direction: column; background: var(--color-bg); }
+    .wizard-body { max-width: 820px; margin: 0 auto; width: 100%; padding: 2rem; }
+    .breadcrumb { display: flex; align-items: center; gap: .5rem; font-size: .875rem; color: var(--color-muted); margin-bottom: 2rem; }
+    .breadcrumb a { color: var(--color-accent); font-weight: 500; }
+
+    /* ── Step indicator ── */
+    .step-indicator { display: flex; align-items: center; justify-content: center; margin-bottom: 2rem; }
+    .si-item { display: flex; align-items: center; }
+    .si-dot {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .78rem; font-weight: 700;
+      flex-shrink: 0;
+      transition: all .3s;
+    }
+    .si-dot.done   { background: var(--color-success); color: #fff; }
+    .si-dot.active { background: var(--color-accent);  color: #fff; box-shadow: 0 0 0 4px rgba(37,99,235,.18); }
+    .si-dot.future { background: var(--color-border);  color: var(--color-muted); }
+    .si-label { font-size: .78rem; color: var(--color-muted); white-space: nowrap; margin: 0 .5rem; }
+    .si-label.active { color: var(--color-accent); font-weight: 600; }
+    .si-line { width: 56px; height: 2px; background: var(--color-border); margin: 0 .25rem; transition: background .3s; }
+    .si-line.done { background: var(--color-success); }
+
+    /* ── Wizard card ── */
+    .wizard-card { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-2xl); box-shadow: var(--shadow-md); overflow: hidden; }
+
+    /* ── Step panel ── */
+    .step-panel { padding: 2.5rem; display: none; }
+    .step-panel.active { display: block; }
+    .step-title { font-size: 1.4rem; margin-bottom: .4rem; }
+    .step-desc  { color: var(--color-muted); font-size: .9rem; margin-bottom: 1.75rem; }
+    .step-actions {
+      display: flex; justify-content: flex-end; gap: 1rem;
+      margin-top: 2rem; padding-top: 1.25rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    /* ── Drop zone ── */
+    .drop-zone {
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 3rem 2rem;
+      text-align: center;
+      cursor: pointer;
+      transition: all .25s;
+      min-height: 200px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem;
+    }
+    .drop-zone:hover, .drop-zone.active { border-color: var(--color-accent); background: rgba(37,99,235,.03); }
+    .drop-zone.done { border-style: solid; border-color: var(--color-success); background: rgba(16,185,129,.03); cursor: default; }
+    .drop-icon { font-size: 3rem; }
+    .drop-text { font-size: .95rem; font-weight: 500; }
+    .drop-sub  { font-size: .8rem; color: var(--color-muted); }
+
+    /* ── Browse btn ── */
+    .browse-btn {
+      background: var(--color-accent); color: #fff;
+      border: none; padding: .5rem 1.25rem;
+      border-radius: var(--radius-md); font-family: inherit;
+      font-weight: 600; font-size: .875rem; cursor: pointer;
+    }
+    .browse-btn:hover { background: var(--color-accent-h); }
+
+    /* ── Upload progress ── */
+    .file-preview { display: flex; flex-direction: column; align-items: center; gap: .75rem; width: 100%; }
+    .file-name { font-weight: 600; font-size: .95rem; }
+    .file-size { font-size: .78rem; color: var(--color-muted); }
+    .upload-row { display: flex; align-items: center; gap: .75rem; width: 100%; max-width: 340px; }
+    .upload-pct { font-size: .8rem; font-weight: 700; color: var(--color-accent); min-width: 34px; }
+
+    /* ── Config step ── */
+    .config-section { margin-bottom: 1.75rem; }
+    .config-label {
+      font-size: .78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .07em;
+      color: var(--color-muted); margin-bottom: .875rem;
+    }
+    .checkbox-grid { display: grid; grid-template-columns: 1fr 1fr; gap: .875rem; }
+    .check-card {
+      display: flex; align-items: center; gap: .875rem;
+      padding: .875rem 1.1rem;
+      border: 1px solid var(--color-border); border-radius: var(--radius-lg);
+      cursor: pointer; transition: all var(--t-fast);
+    }
+    .check-card:hover   { border-color: var(--color-accent); background: rgba(37,99,235,.02); }
+    .check-card.checked { border-color: var(--color-accent); background: #eff6ff; }
+    .check-card input   { display: none; }
+    .check-icon  { font-size: 1.2rem; }
+    .check-label { flex: 1; font-size: .875rem; font-weight: 500; }
+    .check-box {
+      width: 18px; height: 18px; border-radius: 4px;
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .7rem; font-weight: 800;
+      transition: all var(--t-fast);
+    }
+    .check-card.checked .check-box { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+
+    /* ── Marks buttons ── */
+    .marks-row { display: flex; align-items: center; flex-wrap: wrap; gap: .6rem; }
+    .marks-btn, .dur-btn {
+      padding: .45rem .9rem; border-radius: var(--radius-md);
+      border: 1px solid var(--color-border); background: var(--color-surface);
+      font-family: inherit; font-size: .875rem; font-weight: 600; cursor: pointer;
+      transition: all var(--t-fast);
+    }
+    .marks-btn:hover, .dur-btn:hover { border-color: var(--color-accent); color: var(--color-accent); }
+    .marks-btn.sel, .dur-btn.sel { background: var(--color-accent); border-color: var(--color-accent); color: #fff; }
+    .marks-input {
+      width: 64px; padding: .4rem .6rem; text-align: center;
+      border: 1px solid var(--color-border); border-radius: var(--radius-md);
+      font-family: inherit; font-size: .875rem; font-weight: 600;
+    }
+    .dur-row { display: flex; gap: .875rem; }
+    .dur-btn { padding: .6rem 1.4rem; border-radius: var(--radius-lg); }
+
+    /* ── Gemma loading ── */
+    .gemma-screen {
+      padding: 3rem 2.5rem; text-align: center;
+      display: flex; flex-direction: column; align-items: center; gap: 1.5rem;
+      min-height: 420px; justify-content: center;
+    }
+    .gemma-logo-row { display: flex; align-items: center; gap: 1rem; }
+    .gemma-title-text { display: flex; flex-direction: column; align-items: flex-start; line-height: 1.1; }
+    .gemma-brand {
+      font-size: 1.75rem; font-weight: 800;
+      background: linear-gradient(90deg,#4285F4 0%,#34A853 50%,#EA4335 100%);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    }
+    .gemma-by { font-size: .72rem; color: var(--color-muted); letter-spacing: .05em; }
+    .gemma-heading  { font-size: 1.35rem; }
+    .gemma-sub      { font-size: .875rem; color: var(--color-muted); }
+    .gemma-steps { display: flex; flex-direction: column; gap: .75rem; width: 100%; max-width: 380px; }
+    .gemma-step {
+      display: flex; align-items: center; gap: .875rem;
+      padding: .875rem; border-radius: var(--radius-lg);
+      background: var(--color-bg); border: 1px solid var(--color-border);
+      opacity: .4; transition: all .4s;
+    }
+    .gemma-step.active { opacity: 1; border-color: var(--color-accent); background: #eff6ff; }
+    .gemma-step.done   { opacity: 1; border-color: var(--color-success); background: #f0fdf4; }
+    .gemma-step-icon {
+      width: 26px; height: 26px; border-radius: 50%;
+      border: 2px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .8rem; background: #fff;
+      flex-shrink: 0;
+    }
+    .gemma-step.done .gemma-step-icon   { border-color: var(--color-success); color: var(--color-success); }
+    .gemma-step.active .gemma-step-icon { border-color: var(--color-accent);  color: var(--color-accent); }
+    .gemma-step-label { font-size: .875rem; font-weight: 500; text-align: left; }
+    .gemma-prog-wrap { width: 100%; max-width: 380px; height: 4px; background: var(--color-border); border-radius: 9999px; overflow: hidden; }
+    .gemma-prog-bar  { height: 100%; background: linear-gradient(90deg,#4285F4,#34A853); border-radius: 9999px; width: 0; transition: width 1.2s cubic-bezier(.4,0,.2,1); }
+    .pulse { animation: pulse 1s ease-in-out infinite; display: inline-block; }
+    @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:.45;transform:scale(1.4)} }
+
+    /* ── Question card ── */
+    .q-list { display: flex; flex-direction: column; gap: .875rem; max-height: 540px; overflow-y: auto; padding-right: 4px; margin-bottom: .875rem; }
+    .q-list::-webkit-scrollbar { width: 4px; }
+    .q-list::-webkit-scrollbar-thumb { background: var(--color-border); border-radius: 9999px; }
+    .q-card { border: 1px solid var(--color-border); border-radius: var(--radius-lg); padding: 1.1rem; transition: box-shadow var(--t-fast); }
+    .q-card:hover { box-shadow: var(--shadow-sm); }
+    .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: .6rem; }
+    .q-meta   { display: flex; align-items: center; gap: .4rem; flex-wrap: wrap; }
+    .q-idx    { font-size: .72rem; font-weight: 700; color: var(--color-muted); }
+    .q-type   { font-size: .68rem; font-weight: 700; padding: .18rem .55rem; background: #dbeafe; color: #1d4ed8; border-radius: 9999px; }
+    .q-marks  { font-size: .72rem; color: var(--color-muted); background: var(--color-bg); padding: .18rem .45rem; border-radius: var(--radius-sm); }
+    .q-actions { display: flex; gap: 5px; }
+    .q-action {
+      background: none; border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm); width: 28px; height: 28px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; font-size: .8rem; transition: all var(--t-fast);
+    }
+    .q-action:hover           { background: var(--color-bg); }
+    .q-action.danger:hover    { background: #fef2f2; border-color: var(--color-error); }
+    .q-text { font-size: .9rem; line-height: 1.6; margin-bottom: .75rem; }
+    .q-text-edit {
+      width: 100%; font-family: inherit; font-size: .9rem; line-height: 1.6;
+      padding: .4rem .6rem; border: 1px solid var(--color-accent);
+      border-radius: var(--radius-md); resize: vertical; margin-bottom: .75rem;
+    }
+    .q-options { display: flex; flex-direction: column; gap: .3rem; }
+    .q-option {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .38rem .875rem; border-radius: var(--radius-md);
+      border: 1px solid var(--color-border); font-size: .85rem;
+    }
+    .q-option.correct { background: #f0fdf4; border-color: var(--color-success); color: #065f46; }
+    .q-opt-letter {
+      width: 20px; height: 20px; border-radius: 50%;
+      background: var(--color-bg); border: 1px solid var(--color-border);
+      display: flex; align-items: center; justify-content: center;
+      font-size: .68rem; font-weight: 800; flex-shrink: 0;
+    }
+    .q-opt-mark { margin-left: auto; color: var(--color-success); font-weight: 800; }
+    .q-answer { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: .875rem; font-size: .85rem; line-height: 1.6; }
+    .q-answer-lbl { display: block; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); margin-bottom: 3px; }
+
+    /* ── Review header ── */
+    .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .75rem; }
+    .review-summary { display: flex; gap: .75rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+    .rs-item { display: flex; align-items: center; gap: .3rem; background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: .28rem .7rem; }
+    .rs-count { font-weight: 800; color: var(--color-accent); }
+    .rs-type  { font-size: .78rem; color: var(--color-muted); }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="teacher.html">Teacher Portal</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <div class="wizard-body page-enter">
+      <div class="breadcrumb">
+        <a href="teacher.html">← Dashboard</a>
+        <span>/</span>
+        <span>Create Test</span>
+      </div>
+
+      <!-- Step indicator -->
+      <div class="step-indicator" id="step-indicator">
+        <div class="si-item">
+          <div class="si-dot active" id="dot-0">1</div>
+          <span class="si-label active" id="lbl-0">Upload Syllabus</span>
+        </div>
+        <div class="si-line" id="line-0"></div>
+        <div class="si-item">
+          <div class="si-dot future" id="dot-1">2</div>
+          <span class="si-label" id="lbl-1">Configure Test</span>
+        </div>
+        <div class="si-line" id="line-1"></div>
+        <div class="si-item">
+          <div class="si-dot future" id="dot-2">3</div>
+          <span class="si-label" id="lbl-2">Generate &amp; Review</span>
+        </div>
+      </div>
+
+      <div class="wizard-card">
+        <!-- ══════════════ STEP 1 – UPLOAD ══════════════ -->
+        <div class="step-panel active" id="panel-0">
+          <h2 class="step-title">Upload Your Syllabus</h2>
+          <p class="step-desc">Upload a PDF of your syllabus and Gemma will intelligently extract topics and learning objectives.</p>
+
+          <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+            <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
+            <div id="drop-idle">
+              <div class="drop-icon">📂</div>
+              <p class="drop-text">Drag &amp; drop your syllabus PDF here</p>
+              <p class="drop-sub">or</p>
+              <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse File</button>
+              <p class="drop-sub" style="margin-top:.25rem">Supports PDF files up to 20 MB</p>
+            </div>
+            <div id="drop-preview" style="display:none;width:100%;flex-direction:column;align-items:center;gap:.75rem">
+              <div style="font-size:3rem">📄</div>
+              <div>
+                <div class="file-name" id="file-name">—</div>
+                <div class="file-size" id="file-size">—</div>
+              </div>
+              <div class="upload-row" id="upload-progress-row">
+                <div class="progress-wrap" style="flex:1"><div class="progress-bar" id="upload-bar"></div></div>
+                <span class="upload-pct" id="upload-pct">0%</span>
+              </div>
+              <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ Uploaded</div>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button class="btn btn-primary" id="step1-next" disabled onclick="goToStep(1)">Continue to Configuration →</button>
+          </div>
+        </div>
+
+        <!-- ══════════════ STEP 2 – CONFIG ══════════════ -->
+        <div class="step-panel" id="panel-1">
+          <h2 class="step-title">Configure Your Test</h2>
+          <p class="step-desc">Choose question types, marks, and duration before Gemma generates your assessment.</p>
+
+          <div class="config-section">
+            <div class="config-label">Question Types</div>
+            <div class="checkbox-grid">
+              <label class="check-card checked" id="cc-MCQ">
+                <input type="checkbox" checked data-type="MCQ" onchange="updateCheckCard(this)" />
+                <span class="check-icon">🔘</span>
+                <span class="check-label">Multiple Choice (MCQ)</span>
+                <span class="check-box">✓</span>
+              </label>
+              <label class="check-card" id="cc-TF">
+                <input type="checkbox" data-type="TF" onchange="updateCheckCard(this)" />
+                <span class="check-icon">✅</span>
+                <span class="check-label">True / False</span>
+                <span class="check-box"></span>
+              </label>
+              <label class="check-card" id="cc-OL">
+                <input type="checkbox" data-type="OL" onchange="updateCheckCard(this)" />
+                <span class="check-icon">✏️</span>
+                <span class="check-label">One-liner Answer</span>
+                <span class="check-box"></span>
+              </label>
+              <label class="check-card" id="cc-BA">
+                <input type="checkbox" data-type="BA" onchange="updateCheckCard(this)" />
+                <span class="check-icon">📝</span>
+                <span class="check-label">Brief Answer</span>
+                <span class="check-box"></span>
+              </label>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <div class="config-label">Total Marks</div>
+            <div class="marks-row">
+              <button class="marks-btn" onclick="selMarks(10,this)">10</button>
+              <button class="marks-btn sel" onclick="selMarks(20,this)">20</button>
+              <button class="marks-btn" onclick="selMarks(30,this)">30</button>
+              <button class="marks-btn" onclick="selMarks(50,this)">50</button>
+              <button class="marks-btn" onclick="selMarks(100,this)">100</button>
+              <input type="number" class="marks-input" id="marks-input" value="20" min="1" max="500"
+                     oninput="syncMarks(this.value)" />
+              <span style="font-size:.85rem;color:var(--color-muted)">marks</span>
+            </div>
+          </div>
+
+          <div class="config-section">
+            <div class="config-label">Duration</div>
+            <div class="dur-row">
+              <button class="dur-btn" onclick="selDur(15,this)">15 min</button>
+              <button class="dur-btn sel" onclick="selDur(30,this)">30 min</button>
+              <button class="dur-btn" onclick="selDur(60,this)">60 min</button>
+            </div>
+          </div>
+
+          <div class="step-actions">
+            <button class="btn btn-secondary" onclick="goToStep(0)">← Back</button>
+            <button class="btn btn-primary" onclick="startGeneration()">Generate with Gemma ✨</button>
+          </div>
+        </div>
+
+        <!-- ══════════════ STEP 3 – GEMMA GENERATION ══════════════ -->
+        <div class="step-panel" id="panel-gemma">
+          <div class="gemma-screen">
+            <div class="gemma-logo-row">
+              <div class="gemma-orb"></div>
+              <div class="gemma-title-text">
+                <span class="gemma-brand">Gemma</span>
+                <span class="gemma-by">by Google</span>
+              </div>
+            </div>
+            <h2 class="gemma-heading">Crafting your assessment</h2>
+            <p class="gemma-sub">Our AI is at work — please wait a moment.</p>
+            <div class="gemma-steps" id="gemma-steps">
+              <div class="gemma-step" id="gs-0"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Analyzing your syllabus content...</span></div>
+              <div class="gemma-step" id="gs-1"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Generating questions based on objectives...</span></div>
+              <div class="gemma-step" id="gs-2"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Balancing question difficulty levels...</span></div>
+              <div class="gemma-step" id="gs-3"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Preparing your assessment...</span></div>
+            </div>
+            <div class="gemma-prog-wrap">
+              <div class="gemma-prog-bar" id="gemma-prog"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══════════════ STEP 4 – REVIEW ══════════════ -->
+        <div class="step-panel" id="panel-2">
+          <div class="review-header">
+            <div>
+              <h2 class="step-title">Review Generated Questions</h2>
+              <p class="step-desc" id="review-desc">Gemma generated <strong>8 questions</strong> worth <strong>21 marks</strong>. Edit, delete, or regenerate before publishing.</p>
+            </div>
+            <span class="badge badge-gemma">✦ Powered by Gemma</span>
+          </div>
+          <div class="review-summary" id="review-summary"></div>
+          <div class="q-list" id="q-list"></div>
+          <div class="step-actions">
+            <button class="btn btn-secondary" onclick="goToStep(1)">← Reconfigure</button>
+            <button class="btn btn-primary" id="publish-btn" onclick="publishTest()">🚀 Publish Test</button>
+          </div>
+        </div>
+      </div><!-- /wizard-card -->
+    </div><!-- /wizard-body -->
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    /* ════════════════════════════════════════════════
+       Mock questions data
+    ═══════════════════════════════════════════════ */
+    const QUESTIONS = [
+      { id:1, type:'MCQ',         question:'Which pigment is primarily responsible for photosynthesis?',             options:['Carotenoid','Chlorophyll','Xanthophyll','Anthocyanin'], answer:'Chlorophyll', marks:2, difficulty:'Easy' },
+      { id:2, type:'MCQ',         question:'How many ATP molecules are consumed per CO₂ molecule fixed in the Calvin cycle?', options:['1','2','3','4'], answer:'3', marks:3, difficulty:'Hard' },
+      { id:3, type:'True/False',  question:'The light-dependent reactions occur in the stroma of the chloroplast.',   answer:'False', marks:1, difficulty:'Easy' },
+      { id:4, type:'True/False',  question:'Oxygen is released as a by-product of the light-dependent reactions.',   answer:'True',  marks:1, difficulty:'Easy' },
+      { id:5, type:'One-liner',   question:'What is the role of NADPH in the Calvin cycle?',                         answer:'NADPH provides the reducing power to convert 3-PGA into G3P.', marks:2, difficulty:'Medium' },
+      { id:6, type:'Brief Answer',question:'Explain the significance of photorespiration and its impact on plant productivity.', answer:'Photorespiration occurs when RuBisCO fixes O₂ instead of CO₂, producing glycolate and reducing overall photosynthetic efficiency.', marks:5, difficulty:'Hard' },
+      { id:7, type:'MCQ',         question:'Which organism performs anoxygenic photosynthesis?',                      options:['Plants','Cyanobacteria','Purple sulfur bacteria','Algae'], answer:'Purple sulfur bacteria', marks:2, difficulty:'Medium' },
+      { id:8, type:'Brief Answer',question:'Compare and contrast C3 and C4 photosynthesis pathways.',               answer:'C3 plants fix CO₂ directly via RuBisCO. C4 plants use PEP carboxylase in mesophyll cells to concentrate CO₂ around RuBisCO in bundle sheath cells, reducing photorespiration.', marks:5, difficulty:'Hard' },
+    ];
+
+    let questions = JSON.parse(JSON.stringify(QUESTIONS));
+
+    /* ════════════════════════════════════════════════
+       Step navigation
+    ═══════════════════════════════════════════════ */
+    let currentStep = 0;
+    const STEP_PANELS = ['panel-0','panel-1','panel-gemma','panel-2'];
+
+    function showPanel(id) {
+      STEP_PANELS.forEach(p => document.getElementById(p).classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function updateIndicator(step) {
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById('dot-'+i);
+        const lbl = document.getElementById('lbl-'+i);
+        dot.className = 'si-dot ' + (i < step ? 'done' : i === step ? 'active' : 'future');
+        dot.textContent = i < step ? '✓' : i + 1;
+        lbl.className = 'si-label' + (i === step ? ' active' : '');
+      }
+      for (let i = 0; i < 2; i++) {
+        document.getElementById('line-'+i).className = 'si-line' + (i < step ? ' done' : '');
+      }
+    }
+
+    function goToStep(step) {
+      currentStep = step;
+      updateIndicator(step);
+      document.getElementById('step-indicator').style.display = '';
+      showPanel('panel-' + step);
+    }
+
+    /* ════════════════════════════════════════════════
+       Step 1 – Upload
+    ═══════════════════════════════════════════════ */
+    function triggerFile() {
+      if (!document.getElementById('drop-zone').classList.contains('done'))
+        document.getElementById('file-input').click();
+    }
+    function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('active'); }
+    function handleDragLeave()  { document.getElementById('drop-zone').classList.remove('active'); }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('drop-zone').classList.remove('active');
+      if (e.dataTransfer.files[0]) startUpload(e.dataTransfer.files[0]);
+    }
+    function handleFileInput(e) { if (e.target.files[0]) startUpload(e.target.files[0]); }
+
+    function startUpload(file) {
+      const zone = document.getElementById('drop-zone');
+      document.getElementById('drop-idle').style.display = 'none';
+      const prev = document.getElementById('drop-preview');
+      prev.style.display = 'flex';
+      document.getElementById('file-name').textContent = file.name;
+      document.getElementById('file-size').textContent = (file.size/1024).toFixed(1)+' KB · PDF';
+
+      const bar = document.getElementById('upload-bar');
+      const pct = document.getElementById('upload-pct');
+      simulateUpload(bar, pct, () => {
+        document.getElementById('upload-progress-row').style.display = 'none';
+        document.getElementById('upload-done').style.display = 'block';
+        zone.classList.add('done');
+        document.getElementById('step1-next').disabled = false;
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       Step 2 – Config helpers
+    ═══════════════════════════════════════════════ */
+    function updateCheckCard(input) {
+      const card = input.closest('.check-card');
+      const box  = card.querySelector('.check-box');
+      if (input.checked) { card.classList.add('checked'); box.textContent = '✓'; }
+      else               { card.classList.remove('checked'); box.textContent = ''; }
+    }
+    function selMarks(val, btn) {
+      document.querySelectorAll('.marks-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+      document.getElementById('marks-input').value = val;
+    }
+    function syncMarks(val) {
+      document.querySelectorAll('.marks-btn').forEach(b => {
+        b.classList.toggle('sel', parseInt(b.textContent) === parseInt(val));
+      });
+    }
+    function selDur(val, btn) {
+      document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
+      btn.classList.add('sel');
+    }
+
+    /* ════════════════════════════════════════════════
+       Step 3 – Gemma generation animation
+    ═══════════════════════════════════════════════ */
+    function startGeneration() {
+      document.getElementById('step-indicator').style.display = 'none';
+      showPanel('panel-gemma');
+
+      const prog = document.getElementById('gemma-prog');
+      const steps = ['gs-0','gs-1','gs-2','gs-3'];
+      steps.forEach(id => {
+        const el = document.getElementById(id);
+        el.classList.remove('active','done');
+        el.querySelector('.gemma-step-icon').textContent = '○';
+      });
+      prog.style.width = '0';
+
+      steps.forEach((id, i) => {
+        setTimeout(() => {
+          // Mark previous as done
+          if (i > 0) {
+            const prev = document.getElementById(steps[i-1]);
+            prev.classList.remove('active'); prev.classList.add('done');
+            prev.querySelector('.gemma-step-icon').textContent = '✓';
+          }
+          const el = document.getElementById(id);
+          el.classList.add('active');
+          el.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
+          prog.style.width = ((i+1)/steps.length*100)+'%';
+
+          if (i === steps.length - 1) {
+            setTimeout(() => {
+              el.classList.remove('active'); el.classList.add('done');
+              el.querySelector('.gemma-step-icon').textContent = '✓';
+              prog.style.width = '100%';
+              setTimeout(() => showReview(), 600);
+            }, 1200);
+          }
+        }, i * 1400);
+      });
+    }
+
+    /* ════════════════════════════════════════════════
+       Step 4 – Review
+    ═══════════════════════════════════════════════ */
+    function showReview() {
+      document.getElementById('step-indicator').style.display = '';
+      updateIndicator(2);
+      showPanel('panel-2');
+      renderSummary();
+      renderQuestions();
+    }
+
+    function renderSummary() {
+      const types = ['MCQ','True/False','One-liner','Brief Answer'];
+      const sumEl = document.getElementById('review-summary');
+      sumEl.innerHTML = '';
+      types.forEach(t => {
+        const count = questions.filter(q => q.type === t).length;
+        if (count) sumEl.innerHTML += `<div class="rs-item"><span class="rs-count">${count}</span><span class="rs-type">${t}</span></div>`;
+      });
+    }
+
+    const DIFF_COLORS = { Hard:'#ef4444', Medium:'#f59e0b', Easy:'#10b981' };
+
+    function buildOptions(q) {
+      if (q.type === 'MCQ') {
+        return q.options.map((opt, i) => `
+          <div class="q-option${opt === q.answer ? ' correct' : ''}">
+            <span class="q-opt-letter">${String.fromCharCode(65+i)}</span>
+            ${opt}
+            ${opt === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
+          </div>`).join('');
+      }
+      if (q.type === 'True/False') {
+        return ['True','False'].map(v => `
+          <div class="q-option${v === q.answer ? ' correct' : ''}">
+            <span class="q-opt-letter">${v[0]}</span>
+            ${v}
+            ${v === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
+          </div>`).join('');
+      }
+      return `<div class="q-answer"><span class="q-answer-lbl">Sample Answer:</span>${q.answer}</div>`;
+    }
+
+    function renderQuestions() {
+      const list = document.getElementById('q-list');
+      list.innerHTML = '';
+      const diffColors = { Hard:'#ef4444', Medium:'#f59e0b', Easy:'#10b981' };
+      questions.forEach((q, i) => {
+        const dc = diffColors[q.difficulty] || '#64748b';
+        const div = document.createElement('div');
+        div.className = 'q-card';
+        div.dataset.id = q.id;
+        div.innerHTML = `
+          <div class="q-header">
+            <div class="q-meta">
+              <span class="q-idx">Q${i+1}</span>
+              <span class="q-type">${q.type}</span>
+              <span class="badge" style="font-size:.68rem;padding:.15rem .5rem;background:${dc}18;color:${dc};border:1px solid ${dc}33">${q.difficulty}</span>
+              <span class="q-marks">${q.marks} mark${q.marks>1?'s':''}</span>
+            </div>
+            <div class="q-actions">
+              <button class="q-action" title="Edit"       onclick="editQ(${q.id})">✏️</button>
+              <button class="q-action" title="Regenerate" onclick="regenQ(${q.id})">🔄</button>
+              <button class="q-action danger" title="Delete" onclick="deleteQ(${q.id})">🗑</button>
+            </div>
+          </div>
+          <p class="q-text" id="qt-${q.id}">${q.question}</p>
+          <div class="q-options">${buildOptions(q)}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function deleteQ(id) {
+      questions = questions.filter(q => q.id !== id);
+      renderSummary(); renderQuestions();
+    }
+
+    function regenQ(id) {
+      const diffs = ['Easy','Medium','Hard'];
+      questions = questions.map(q => q.id === id ? { ...q, difficulty: diffs[Math.floor(Math.random()*3)] } : q);
+      renderSummary(); renderQuestions();
+      showToast('Question regenerated');
+    }
+
+    function editQ(id) {
+      const textEl = document.getElementById('qt-'+id);
+      const current = textEl.textContent;
+      const ta = document.createElement('textarea');
+      ta.className = 'q-text-edit';
+      ta.value = current;
+      ta.rows = 3;
+      textEl.replaceWith(ta);
+      ta.focus();
+      ta.onblur = () => {
+        const p = document.createElement('p');
+        p.className = 'q-text';
+        p.id = 'qt-'+id;
+        p.textContent = ta.value;
+        questions = questions.map(q => q.id === id ? { ...q, question: ta.value } : q);
+        ta.replaceWith(p);
+      };
+    }
+
+    /* ── Publish ── */
+    function publishTest() {
+      window.location.href = 'teacher-published.html';
+    }
+  </script>
+</body>
+</html>
