@@ -144,9 +144,23 @@
               id="test-code"
               class="form-input code-input"
               placeholder="GEM-XXX"
-              maxlength="7"
+              maxlength="12"
               required
+              oninput="checkTestCodeLive(this.value)"
             />
+          </div>
+
+          <!-- Test Preview Card (Revealed when code matched) -->
+          <div id="test-preview-card" style="display:none; background:#f0fdf4; border:1px solid #a7f3d0; border-radius:var(--radius-lg); padding:1rem; margin-bottom:1.25rem;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:.4rem;">
+              <span class="badge badge-gemma">✅ Verified Assessment</span>
+              <span style="font-size:.75rem; font-weight:700; color:#065f46;" id="prev-code">GEM-472</span>
+            </div>
+            <div style="font-weight:700; font-size:.95rem; color:#065f46; margin-bottom:.3rem;" id="prev-title">Introduction to Photosynthesis</div>
+            <div style="display:flex; gap:1rem; font-size:.8rem; color:#047857;">
+              <span>⏱️ Deadline Timer: <strong id="prev-duration">30 mins</strong></span>
+              <span>📋 <strong id="prev-questions">8</strong> Questions</span>
+            </div>
           </div>
 
           <div class="quick-code" id="available-tests-box">
@@ -154,7 +168,7 @@
             <button type="button" id="fill-test-btn" class="quick-code-btn" style="display:none;" onclick="fillActiveTest()">Fill Code</button>
           </div>
 
-          <button type="submit" class="btn btn-primary btn-block">
+          <button type="submit" class="btn btn-primary btn-block" id="start-assessment-btn">
             Start Assessment →
           </button>
         </form>
@@ -205,7 +219,52 @@
     }
   </script>
   <script type="module">
-    import { auth, signOut } from "./firebase-config.js";
+    import { auth, signOut, db, doc, getDoc } from "./firebase-config.js";
+
+    window.checkTestCodeLive = async function(val) {
+      const code = val.trim().toUpperCase();
+      const card = document.getElementById('test-preview-card');
+      if (!code || code.length < 3) {
+        card.style.display = 'none';
+        return;
+      }
+
+      // Check localStorage first
+      const testsStr = localStorage.getItem('ea_tests');
+      if (testsStr) {
+        try {
+          const tests = JSON.parse(testsStr);
+          const matched = tests.find(t => t.code === code || t.code.toUpperCase() === code);
+          if (matched) {
+            showPreviewCard(matched);
+            return;
+          }
+        } catch(e) {}
+      }
+
+      // Check Firebase Firestore
+      try {
+        const docRef = doc(db, "tests", code);
+        const docSnap = await getDoc(docRef);
+        if (docSnap.exists()) {
+          showPreviewCard(docSnap.data());
+          return;
+        }
+      } catch (err) {
+        console.warn("Firestore live lookup notice:", err);
+      }
+
+      card.style.display = 'none';
+    };
+
+    function showPreviewCard(data) {
+      const card = document.getElementById('test-preview-card');
+      document.getElementById('prev-code').textContent = data.code || 'GEM-472';
+      document.getElementById('prev-title').textContent = data.title || 'Assessment';
+      document.getElementById('prev-duration').textContent = `${data.duration || 30} mins`;
+      document.getElementById('prev-questions').textContent = (data.questions ? data.questions.length : (data.questionsCount || 8));
+      card.style.display = 'block';
+    }
 
     const userStr = localStorage.getItem('ea_user');
     if (userStr) {
