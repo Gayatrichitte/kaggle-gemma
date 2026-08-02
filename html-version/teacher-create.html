@@ -282,32 +282,52 @@
           </div>
 
           <div style="background:var(--color-surface); border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.5rem; margin-bottom:1.5rem;">
-            <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.75rem;">Option A: Upload Syllabus PDF</div>
-            <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-              <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
-              <div id="drop-idle">
-                <div class="drop-icon">📂</div>
-                <p class="drop-text">Drag &amp; drop your syllabus PDF file here</p>
-                <p class="drop-sub">or click to browse</p>
-              </div>
-              <div id="drop-preview" style="display:none;width:100%;flex-direction:column;align-items:center;gap:.5rem">
-                <div style="font-size:2.5rem">📄</div>
-                <div>
-                  <div class="file-name" id="file-name">—</div>
-                  <div class="file-size" id="file-size">—</div>
-                </div>
-                <div class="upload-row" id="upload-progress-row">
-                  <div class="progress-wrap" style="flex:1"><div class="progress-bar" id="upload-bar"></div></div>
-                  <span class="upload-pct" id="upload-pct">0%</span>
-                </div>
-                <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ PDF Ready</div>
-              </div>
+            <!-- Mode Switcher Tabs -->
+            <div style="display:flex; gap:0.75rem; margin-bottom:1.25rem; border-bottom:1px solid var(--color-border); padding-bottom:0.75rem;">
+              <button type="button" id="tab-opt-topic" class="btn btn-secondary btn-sm" onclick="selectSourceMode('topic')" style="flex:1; font-weight:700; background:#eff6ff; color:var(--color-accent); border:1px solid var(--color-accent);">
+                ✨ Option B: Subject / Topic Details (Gemma AI Database)
+              </button>
+              <button type="button" id="tab-opt-pdf" class="btn btn-secondary btn-sm" onclick="selectSourceMode('pdf')" style="flex:1; font-weight:700;">
+                📄 Option A: Upload Syllabus PDF
+              </button>
             </div>
 
-            <div style="text-align:center; font-weight:800; color:var(--color-accent); margin:1.25rem 0; letter-spacing:0.1em;">─── OR ───</div>
+            <!-- Option B: Subject / Topic Details Input -->
+            <div id="sec-opt-topic" style="display:block;">
+              <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.35rem;">✨ Option B: Subject / Topic Details</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin-bottom:0.75rem;">
+                Gemma AI will use its internal database of knowledge to generate questions for your chosen topic.
+              </p>
+              <textarea id="topic-details-input" class="form-textarea" rows="4" placeholder="Enter topic name or subject details (e.g. Photosynthesis, Light-dependent reactions, Calvin cycle, RuBisCO enzyme)..." oninput="validateStep1()"></textarea>
+            </div>
 
-            <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.5rem;">Option B: Subject / Topic Details</div>
-            <textarea id="topic-details-input" class="form-textarea" rows="3" placeholder="Enter topic name or subject details (e.g. Photosynthesis, Light-dependent reactions, Calvin cycle, RuBisCO)..." oninput="validateStep1()"></textarea>
+            <!-- Option A: PDF Upload -->
+            <div id="sec-opt-pdf" style="display:none;">
+              <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.35rem;">📄 Option A: Upload Syllabus PDF</div>
+              <p style="font-size:0.82rem; color:var(--color-muted); margin-bottom:0.75rem;">
+                Upload a PDF file to extract text directly from your document.
+              </p>
+              <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+                <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
+                <div id="drop-idle">
+                  <div class="drop-icon">📂</div>
+                  <p class="drop-text">Drag &amp; drop your syllabus PDF file here</p>
+                  <p class="drop-sub">or click to browse</p>
+                </div>
+                <div id="drop-preview" style="display:none;width:100%;flex-direction:column;align-items:center;gap:.5rem">
+                  <div style="font-size:2.5rem">📄</div>
+                  <div>
+                    <div class="file-name" id="file-name">—</div>
+                    <div class="file-size" id="file-size">—</div>
+                  </div>
+                  <div class="upload-row" id="upload-progress-row">
+                    <div class="progress-wrap" style="flex:1"><div class="progress-bar" id="upload-bar"></div></div>
+                    <span class="upload-pct" id="upload-pct">0%</span>
+                  </div>
+                  <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ PDF Ready</div>
+                </div>
+              </div>
+            </div>
           </div>
 
           <div class="step-actions">
@@ -464,6 +484,7 @@
       topicDetails: '',
       fileContent: '',
       hasFile: false,
+      inputMode: 'topic',
       selectedTypes: ['MCQ', 'TF'],
       totalMarks: 20,
       duration: 30
@@ -471,17 +492,51 @@
 
     let generatedQuestions = [];
 
+    // Switch between Option A (PDF) and Option B (Topic / Gemma DB)
+    window.selectSourceMode = function(mode) {
+      testDetails.inputMode = mode;
+      const tabTopic = document.getElementById('tab-opt-topic');
+      const tabPdf = document.getElementById('tab-opt-pdf');
+      const secTopic = document.getElementById('sec-opt-topic');
+      const secPdf = document.getElementById('sec-opt-pdf');
+
+      if (mode === 'topic') {
+        tabTopic.style.background = '#eff6ff';
+        tabTopic.style.color = 'var(--color-accent)';
+        tabTopic.style.border = '1px solid var(--color-accent)';
+        tabPdf.style.background = '';
+        tabPdf.style.color = '';
+        tabPdf.style.border = '';
+        secTopic.style.display = 'block';
+        secPdf.style.display = 'none';
+      } else {
+        tabPdf.style.background = '#eff6ff';
+        tabPdf.style.color = 'var(--color-accent)';
+        tabPdf.style.border = '1px solid var(--color-accent)';
+        tabTopic.style.background = '';
+        tabTopic.style.color = '';
+        tabTopic.style.border = '';
+        secPdf.style.display = 'block';
+        secTopic.style.display = 'none';
+      }
+      validateStep1();
+    };
+
     // Step 1 Validation (Requires Title + (PDF OR Topic details))
     window.validateStep1 = function() {
       const title = document.getElementById('test-title-input').value.trim();
       const topicInput = document.getElementById('topic-details-input').value.trim();
       const nextBtn = document.getElementById('step1-next');
 
-      if (title.length > 0 && (topicInput.length > 0 || testDetails.hasFile)) {
+      testDetails.title = title;
+      testDetails.topicDetails = topicInput;
+      testDetails.subject = topicInput ? topicInput.substring(0, 40) : title;
+
+      const isTopicValid = topicInput.length > 0;
+      const isPdfValid = testDetails.hasFile;
+
+      if (title.length > 0 && (isTopicValid || isPdfValid)) {
         nextBtn.disabled = false;
-        testDetails.title = title;
-        testDetails.topicDetails = topicInput;
-        testDetails.subject = topicInput ? topicInput.substring(0, 30) : title;
       } else {
         nextBtn.disabled = true;
       }
@@ -625,8 +680,10 @@
       gs0.classList.add('active');
       gs0.querySelector('.gemma-step-icon').innerHTML = '<span class="pulse">●</span>';
 
-      // Send PDF text if available, otherwise send topic details text!
-      const contentToGenerate = (testDetails.fileContent || testDetails.topicDetails || testDetails.title).trim();
+      // Determine whether generation is topic-based (Gemma DB) or PDF text-based
+      const isTopicBased = testDetails.inputMode === 'topic' || !testDetails.hasFile;
+      const contentToGenerate = isTopicBased ? (testDetails.topicDetails || testDetails.title).trim() : (testDetails.fileContent || testDetails.title).trim();
+
       const isMcq = testDetails.selectedTypes.includes('MCQ');
       const isTf = testDetails.selectedTypes.includes('TF') || testDetails.selectedTypes.includes('True/False');
 
@@ -648,6 +705,7 @@
           title: testDetails.title,
           subject: testDetails.subject || testDetails.title,
           textContent: contentToGenerate,
+          isTopicBased: isTopicBased,
           mcqCount: mcqCount > 0 ? mcqCount : 3,
           tfCount: tfCount > 0 ? tfCount : 2,
           totalMarks: testDetails.totalMarks
