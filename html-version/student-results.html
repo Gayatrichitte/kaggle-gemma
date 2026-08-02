@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Student Assessment Results – Education Analyzer" />
+  <title>Assessment Results | Education Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--color-bg);
+    }
+
+    .results-container {
+      max-width: 880px;
+      margin: 0 auto;
+      width: 100%;
+      padding: 2rem 1.5rem;
+    }
+
+    /* ── Header Card ── */
+    .results-header-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-2xl);
+      padding: 2rem;
+      box-shadow: var(--shadow-sm);
+      margin-bottom: 1.5rem;
+    }
+
+    .header-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .test-info h1 {
+      font-size: 1.6rem;
+      margin-bottom: .25rem;
+    }
+
+    .student-meta {
+      font-size: .9rem;
+      color: var(--color-muted);
+    }
+
+    /* ── Score Circle & Overview ── */
+    .score-overview-grid {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 2rem;
+      align-items: center;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--color-border);
+    }
+
+    .score-radial-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, #eff6ff 0%, #f0fdf4 100%);
+      border: 1px solid rgba(37, 99, 235, 0.15);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem 1rem;
+      text-align: center;
+    }
+
+    .score-num {
+      font-size: 2.5rem;
+      font-weight: 800;
+      color: var(--color-accent);
+      line-height: 1;
+      margin-bottom: .25rem;
+    }
+
+    .score-total {
+      font-size: .85rem;
+      color: var(--color-muted);
+      font-weight: 600;
+    }
+
+    .score-pct-badge {
+      margin-top: .75rem;
+      background: var(--color-success);
+      color: #fff;
+      font-weight: 700;
+      font-size: .8rem;
+      padding: .25rem .75rem;
+      border-radius: 9999px;
+    }
+
+    .stats-breakdown-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1rem;
+    }
+
+    .stat-pill-card {
+      background: var(--color-bg);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      display: flex;
+      flex-direction: column;
+      gap: .25rem;
+    }
+
+    .stat-pill-count {
+      font-size: 1.5rem;
+      font-weight: 800;
+      line-height: 1;
+    }
+
+    .stat-pill-label {
+      font-size: .75rem;
+      color: var(--color-muted);
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      font-weight: 600;
+    }
+
+    /* ── Gemma Insight Card ── */
+    .gemma-insight-card {
+      background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+      border: 1px solid #cbd5e1;
+      border-left: 4px solid var(--color-accent);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .insight-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: .875rem;
+    }
+
+    .insight-title-group {
+      display: flex;
+      align-items: center;
+      gap: .65rem;
+    }
+
+    .insight-title {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--color-primary);
+    }
+
+    .insight-body {
+      font-size: .92rem;
+      color: #334155;
+      line-height: 1.6;
+    }
+
+    .insight-tags {
+      display: flex;
+      gap: .5rem;
+      flex-wrap: wrap;
+      margin-top: 1rem;
+    }
+
+    .insight-tag {
+      font-size: .75rem;
+      font-weight: 600;
+      padding: .25rem .65rem;
+      border-radius: var(--radius-md);
+      background: #e2e8f0;
+      color: #334155;
+    }
+
+    .tag-weak {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .tag-strong {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    /* ── Review Questions List ── */
+    .review-section-title {
+      font-size: 1.25rem;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .q-review-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-xl);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow var(--t-fast);
+    }
+
+    .q-review-card:hover {
+      box-shadow: var(--shadow-md);
+    }
+
+    .q-review-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: .875rem;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+
+    .q-review-meta {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      flex-wrap: wrap;
+    }
+
+    .q-status-badge {
+      font-size: .75rem;
+      font-weight: 700;
+      padding: .2rem .65rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+    }
+
+    .status-correct {
+      background: #d1fae5;
+      color: #065f46;
+      border: 1px solid #a7f3d0;
+    }
+
+    .status-incorrect {
+      background: #fee2e2;
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+
+    .status-partial {
+      background: #fef3c7;
+      color: #92400e;
+      border: 1px solid #fde68a;
+    }
+
+    .status-skipped {
+      background: #f1f5f9;
+      color: #475569;
+      border: 1px solid #e2e8f0;
+    }
+
+    .badge-gemma-eval {
+      font-size: .72rem;
+      font-weight: 600;
+      padding: .2rem .55rem;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, rgba(66, 133, 244, 0.1), rgba(52, 168, 83, 0.1));
+      color: #1a73e8;
+      border: 1px solid rgba(66, 133, 244, 0.2);
+    }
+
+    .q-review-prompt {
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--color-primary);
+      margin-bottom: 1rem;
+      line-height: 1.5;
+    }
+
+    .answer-comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+      margin-bottom: 1rem;
+      font-size: .875rem;
+    }
+
+    .ans-box {
+      padding: .75rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      background: var(--color-bg);
+    }
+
+    .ans-box-correct {
+      background: #f0fdf4;
+      border-color: #a7f3d0;
+    }
+
+    .ans-box-incorrect {
+      background: #fef2f2;
+      border-color: #fecaca;
+    }
+
+    .ans-label {
+      font-size: .72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--color-muted);
+      margin-bottom: .25rem;
+    }
+
+    .ans-val {
+      font-weight: 500;
+      color: var(--color-primary);
+    }
+
+    .q-explanation-box {
+      background: #f8fafc;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      padding: .75rem 1rem;
+      font-size: .85rem;
+      color: #475569;
+      line-height: 1.5;
+    }
+
+    .explanation-title {
+      font-weight: 700;
+      color: var(--color-primary);
+      margin-bottom: .25rem;
+    }
+
+    /* Actions Footer */
+    .results-actions {
+      display: flex;
+      justify-content: center;
+      gap: 1rem;
+      margin-top: 2rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <nav class="navbar">
+      <a href="index.html" class="navbar-brand">Education Analyzer</a>
+      <div class="navbar-links">
+        <a href="student.html">Student Portal</a>
+        <a href="teacher.html">Teacher Portal</a>
+        <span class="badge badge-gemma">✦ Powered by Gemma</span>
+      </div>
+    </nav>
+
+    <div class="results-container page-enter">
+      <!-- ── Header Score Card ── -->
+      <div class="results-header-card">
+        <div class="header-top">
+          <div class="test-info">
+            <span class="badge badge-gemma" style="margin-bottom: .5rem;">Kaggle Gemma Evaluation</span>
+            <h1 id="res-test-title">Introduction to Photosynthesis</h1>
+            <p class="student-meta">
+              Student: <strong id="res-student-name">Aryan Mehta</strong> &middot; Code: <strong id="res-test-code">GEM-472</strong> &middot; Date: <strong>Jul 30, 2026</strong>
+            </p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="window.print()">
+            🖨️ Print Results
+          </button>
+        </div>
+
+        <div class="score-overview-grid">
+          <div class="score-radial-box">
+            <div class="score-num" id="res-score-num">17 / 21</div>
+            <div class="score-total">Total Marks</div>
+            <div class="score-pct-badge" id="res-score-pct">81% Score</div>
+          </div>
+
+          <div class="stats-breakdown-grid">
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: var(--color-success);" id="stat-correct">5</span>
+              <span class="stat-pill-label">Correct</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-count" style="color: var(--color-error);" id="stat-incorrect">2</span>
+              <span class="stat-pill-label">Incorrect</span>
+            </div>
+            <div class="stat-pill-card">
+              <span class="stat-pill-card-count" style="color: var(--color-muted);" id="stat-skipped">1</span>
+              <span class="stat-pill-label">Unanswered</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Gemma Assessment Insight ── -->
+      <div class="gemma-insight-card">
+        <div class="insight-header">
+          <div class="insight-title-group">
+            <div class="gemma-orb" style="width: 24px; height: 24px;"></div>
+            <span class="insight-title">Gemma Assessment Insight</span>
+          </div>
+          <span class="badge badge-gemma">AI Learning Report</span>
+        </div>
+        <div class="insight-body">
+          <p id="insight-text">
+            Aryan demonstrated strong foundational understanding of <strong>Light-Dependent Reactions</strong> and basic chloroplast components. However, analysis highlights minor conceptual gaps in <strong>Photorespiration efficiency</strong> and energy molecule counts in the <strong>Calvin Cycle (C3 vs C4 pathways)</strong>.
+          </p>
+          <div class="insight-tags">
+            <span class="insight-tag tag-strong">✓ Strong: Chlorophyll & Light Reactions</span>
+            <span class="insight-tag tag-weak">⚠️ Needs Review: Photorespiration & RuBisCO</span>
+            <span class="insight-tag tag-weak">⚠️ Needs Review: C3 / C4 Pathway Differences</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Question-by-Question Review ── -->
+      <div class="review-section-title">
+        <span>Question Breakdown &amp; Feedback</span>
+        <span style="font-size: .85rem; font-weight: 500; color: var(--color-muted);" id="q-total-count">8 Questions Reviewed</span>
+      </div>
+
+      <div id="questions-review-list">
+        <!-- Rendered by JS -->
+      </div>
+
+      <!-- ── Actions ── -->
+      <div class="results-actions">
+        <a href="student.html" class="btn btn-primary">Back to Student Portal</a>
+        <a href="index.html" class="btn btn-secondary">Home</a>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+  <script>
+    /* ── Mock Evaluated Questions Data ── */
+    const EVALUATED_QUESTIONS = [
+      {
+        id: 1,
+        type: 'MCQ',
+        difficulty: 'Easy',
+        maxMarks: 2,
+        earnedMarks: 2,
+        status: 'correct',
+        question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
+        userAnswer: 'Chlorophyll',
+        correctAnswer: 'Chlorophyll',
+        isAiEvaluated: false,
+        explanation: 'Chlorophyll absorbs blue and red wavelengths of light while reflecting green light, making it the primary photosynthetic pigment.'
+      },
+      {
+        id: 2,
+        type: 'MCQ',
+        difficulty: 'Hard',
+        maxMarks: 3,
+        earnedMarks: 3,
+        status: 'correct',
+        question: 'In the Calvin cycle, how many ATP molecules are consumed per CO₂ molecule fixed?',
+        userAnswer: '3',
+        correctAnswer: '3',
+        isAiEvaluated: false,
+        explanation: 'The Calvin cycle uses 2 ATP molecules in the reduction stage and 1 ATP molecule in the regeneration of RuBP, totaling 3 ATP per fixed CO₂.'
+      },
+      {
+        id: 3,
+        type: 'True/False',
+        difficulty: 'Easy',
+        maxMarks: 1,
+        earnedMarks: 1,
+        status: 'correct',
+        question: 'The light-dependent reactions of photosynthesis occur in the stroma of the chloroplast.',
+        userAnswer: 'False',
+        correctAnswer: 'False',
+        isAiEvaluated: false,
+        explanation: 'Light-dependent reactions occur within the thylakoid membranes. The stroma is the site of light-independent reactions (Calvin cycle).'
+      },
+      {
+        id: 4,
+        type: 'True/False',
+        difficulty: 'Easy',
+        maxMarks: 1,
+        earnedMarks: 0,
+        status: 'incorrect',
+        question: 'Oxygen is released as a by-product of the light-dependent reactions.',
+        userAnswer: 'False',
+        correctAnswer: 'True',
+        isAiEvaluated: false,
+        explanation: 'Photolysis of water during light reactions splits H₂O molecules, releasing oxygen gas (O₂) into the atmosphere.'
+      },
+      {
+        id: 5,
+        type: 'One-liner',
+        difficulty: 'Medium',
+        maxMarks: 2,
+        earnedMarks: 2,
+        status: 'correct',
+        question: 'What is the primary role of NADPH in the Calvin cycle?',
+        userAnswer: 'NADPH provides reducing power and high-energy electrons to reduce 3-PGA into G3P.',
+        correctAnswer: 'Provides electrons/reducing power to convert 3-PGA to G3P.',
+        isAiEvaluated: true,
+        explanation: 'Gemma Evaluation: Full credit. The student correctly identified both electron transfer (reducing power) and the specific substrate conversion.'
+      },
+      {
+        id: 6,
+        type: 'Brief Answer',
+        difficulty: 'Hard',
+        maxMarks: 5,
+        earnedMarks: 3,
+        status: 'partial',
+        question: 'Explain the significance of photorespiration and its impact on plant photosynthetic efficiency.',
+        userAnswer: 'Photorespiration happens when RuBisCO reacts with oxygen instead of carbon dioxide, which wastes energy.',
+        correctAnswer: 'RuBisCO fixes O₂ instead of CO₂, releasing fixed carbon and consuming ATP without producing sugar, reducing net carbon fixation efficiency by up to 25%.',
+        isAiEvaluated: true,
+        explanation: 'Gemma Evaluation: Partial credit (3/5). Correctly noted RuBisCO oxygenation and energy waste, but omitted quantitative impact on carbon fixation yield and environmental triggers.'
+      },
+      {
+        id: 7,
+        type: 'MCQ',
+        difficulty: 'Medium',
+        maxMarks: 2,
+        earnedMarks: 2,
+        status: 'correct',
+        question: 'Which of the following organisms perform anoxygenic photosynthesis?',
+        userAnswer: 'Purple sulfur bacteria',
+        correctAnswer: 'Purple sulfur bacteria',
+        isAiEvaluated: false,
+        explanation: 'Purple sulfur bacteria use hydrogen sulfide (H₂S) instead of water as an electron donor, producing sulfur instead of oxygen.'
+      },
+      {
+        id: 8,
+        type: 'Brief Answer',
+        difficulty: 'Hard',
+        maxMarks: 5,
+        earnedMarks: 3,
+        status: 'partial',
+        question: 'Compare and contrast the structural and biochemical adaptations of C3 and C4 plants.',
+        userAnswer: 'C3 plants fix carbon directly while C4 plants use bundle sheath cells to concentrate CO2.',
+        correctAnswer: 'C3 plants fix CO₂ directly via RuBisCO in mesophyll cells. C4 plants use Kranz anatomy and PEP carboxylase to separate initial carbon fixation from the Calvin cycle, minimizing photorespiration.',
+        isAiEvaluated: true,
+        explanation: 'Gemma Evaluation: Partial credit (3/5). Mentioned bundle sheath cells and direct fixation, but missed mentioning PEP carboxylase and Kranz anatomy details.'
+      }
+    ];
+
+    /* ── Render Logic ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const name = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Aryan Mehta';
+      const code = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
+
+      document.getElementById('res-student-name').textContent = name;
+      document.getElementById('res-test-code').textContent = code;
+
+      renderQuestionsReview();
+    });
+
+    function renderQuestionsReview() {
+      const container = document.getElementById('questions-review-list');
+      container.innerHTML = '';
+
+      let totalEarned = 0;
+      let totalMax = 0;
+      let correctCount = 0;
+      let incorrectCount = 0;
+      let skippedCount = 0;
+
+      EVALUATED_QUESTIONS.forEach((q, i) => {
+        totalEarned += q.earnedMarks;
+        totalMax += q.maxMarks;
+
+        if (q.status === 'correct') correctCount++;
+        else if (q.status === 'incorrect') incorrectCount++;
+        else if (q.status === 'skipped') skippedCount++;
+        else correctCount++; // partial counted toward correct/attempted
+
+        const card = document.createElement('div');
+        card.className = 'q-review-card';
+
+        // Badges
+        let statusBadgeClass = 'status-correct';
+        let statusText = 'Correct';
+        if (q.status === 'incorrect') { statusBadgeClass = 'status-incorrect'; statusText = 'Incorrect'; }
+        else if (q.status === 'partial') { statusBadgeClass = 'status-partial'; statusText = 'Partial Credit'; }
+        else if (q.status === 'skipped') { statusBadgeClass = 'status-skipped'; statusText = 'Skipped'; }
+
+        const aiBadgeHtml = q.isAiEvaluated ? `<span class="badge-gemma-eval">🤖 Evaluated by Gemma</span>` : '';
+
+        const ansBoxClass = q.status === 'correct' ? 'ans-box-correct' : q.status === 'incorrect' ? 'ans-box-incorrect' : 'ans-box';
+
+        card.innerHTML = `
+          <div class="q-review-header">
+            <div class="q-review-meta">
+              <span style="font-weight:700; font-size:.85rem;">Q${i+1}</span>
+              <span class="badge badge-neutral">${q.type}</span>
+              <span class="q-status-badge ${statusBadgeClass}">${statusText}</span>
+              ${aiBadgeHtml}
+            </div>
+            <span style="font-weight:700; font-size:.9rem; color:var(--color-primary);">
+              ${q.earnedMarks} / ${q.maxMarks} Marks
+            </span>
+          </div>
+
+          <div class="q-review-prompt">${q.question}</div>
+
+          <div class="answer-comparison-grid">
+            <div class="ans-box ${ansBoxClass}">
+              <div class="ans-label">Your Answer</div>
+              <div class="ans-val">${q.userAnswer || '<em>No answer provided</em>'}</div>
+            </div>
+            <div class="ans-box ans-box-correct">
+              <div class="ans-label">Correct / Ideal Answer</div>
+              <div class="ans-val">${q.correctAnswer}</div>
+            </div>
+          </div>
+
+          <div class="q-explanation-box">
+            <div class="explanation-title">Explanation &amp; Feedback</div>
+            <div>${q.explanation}</div>
+          </div>
+        `;
+
+        container.appendChild(card);
+      });
+
+      // Update Summary Header stats
+      const pct = Math.round((totalEarned / totalMax) * 100);
+      document.getElementById('res-score-num').textContent = `${totalEarned} / ${totalMax}`;
+      document.getElementById('res-score-pct').textContent = `${pct}% Score`;
+      document.getElementById('stat-correct').textContent = correctCount;
+      document.getElementById('stat-incorrect').textContent = incorrectCount;
+      document.getElementById('stat-skipped').textContent = skippedCount;
+      document.getElementById('q-total-count').textContent = `${EVALUATED_QUESTIONS.length} Questions Reviewed`;
+    }
+  </script>
+</body>
+</html>
