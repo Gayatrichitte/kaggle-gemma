@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create Test | Education Analyzer</title>
   <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <style>
     /* ── Wizard shell ── */
     .page { min-height: 100vh; display: flex; flex-direction: column; background: var(--color-bg); }
@@ -485,20 +486,35 @@
     };
     window.handleFileInput = function(e) { if (e.target.files[0]) startUpload(e.target.files[0]); };
 
-    function startUpload(file) {
+    async function startUpload(file) {
       const zone = document.getElementById('drop-zone');
       document.getElementById('drop-idle').style.display = 'none';
       const prev = document.getElementById('drop-preview');
       prev.style.display = 'flex';
       document.getElementById('file-name').textContent = file.name;
-      document.getElementById('file-size').textContent = (file.size/1024).toFixed(1)+' KB · PDF/Doc';
+      document.getElementById('file-size').textContent = (file.size/1024).toFixed(1)+' KB · PDF';
 
-      // Read text content from uploaded file
-      const reader = new FileReader();
-      reader.onload = function(evt) {
-        testDetails.fileContent = evt.target.result || '';
-      };
-      reader.readAsText(file);
+      // Read binary PDF or text content
+      try {
+        if (window.pdfjsLib && (file.type === "application/pdf" || file.name.endsWith('.pdf'))) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let fullText = "";
+          for (let i = 1; i <= pdf.numPages; i++) {
+            const page = await pdf.getPage(i);
+            const textContent = await page.getTextContent();
+            fullText += textContent.items.map(item => item.str).join(" ") + "\n";
+          }
+          testDetails.fileContent = fullText.trim();
+        } else {
+          const reader = new FileReader();
+          reader.onload = function(evt) { testDetails.fileContent = evt.target.result || ''; };
+          reader.readAsText(file);
+        }
+      } catch (err) {
+        console.warn("PDF Extraction notice:", err);
+      }
 
       const bar = document.getElementById('upload-bar');
       const pct = document.getElementById('upload-pct');
