@@ -1,5 +1,5 @@
 /* ============================================================
-   app.js – Shared utilities for Education Analyzer HTML version
+   app.js – Shared utilities for EduMetric HTML version
    ============================================================ */
 
 /* ── Toast ──────────────────────────────────────────────────── */
