@@ -6,6 +6,7 @@
   <title>Create Test | EduMetric</title>
   <link rel="stylesheet" href="styles.css" />
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="app.js"></script>
   <style>
     /* ── Wizard shell ── */
     .page { min-height: 100vh; display: flex; flex-direction: column; background: var(--color-bg); }
@@ -223,6 +224,9 @@
     .q-opt-mark { margin-left: auto; color: var(--color-success); font-weight: 800; }
     .q-answer { background: var(--color-bg); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: .875rem; font-size: .85rem; line-height: 1.6; }
     .q-answer-lbl { display: block; font-size: .68rem; font-weight: 800; text-transform: uppercase; letter-spacing: .06em; color: var(--color-muted); margin-bottom: 3px; }
+
+    /* ── Print modal active state ── */
+    #print-paper-modal.active { opacity: 1 !important; pointer-events: auto !important; }
 
     /* ── Review header ── */
     .review-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: .75rem; }
@@ -605,7 +609,7 @@
       testDetails.selectedTypes = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-type'));
 
       if (testDetails.selectedTypes.length === 0) {
-        showToast('Please select at least MCQ or True/False question types.');
+        window.showToast('Please select at least MCQ or True/False question types.');
         return;
       }
 
@@ -826,10 +830,10 @@
           await setDoc(doc(db, "users", testNameKey), newTest);
         }
         console.log("✅ Test stored successfully in Firebase Firestore under tests and users:", testCode, testNameKey);
-        showToast(`✅ Test saved to Firebase Firestore! (Code: ${testCode})`);
+        window.showToast(`✅ Test saved to Firebase Firestore! (Code: ${testCode})`);
       } catch (e) {
         console.error("❌ Firestore test save error:", e);
-        showToast("Saved locally. Firestore notice: " + e.message);
+        window.showToast("Saved locally. Firestore notice: " + e.message);
       }
 
       setTimeout(() => {
