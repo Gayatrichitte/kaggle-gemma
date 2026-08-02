@@ -175,7 +175,7 @@
         <!-- Welcome -->
         <div class="welcome">
           <div>
-            <h1>Welcome back, Ms. Gayatri 👋</h1>
+            <h1>Welcome back, <span id="welcome-teacher-name">Teacher</span> 👋</h1>
             <p>Here's what's happening with your assessments today.</p>
           </div>
           <a href="teacher-create.html" class="btn btn-primary">+ Create New Test</a>
@@ -185,19 +185,19 @@
         <div class="stats-row">
           <div class="card card-hover stat-card">
             <span class="stat-icon">📄</span>
-            <div><div class="stat-value">12</div><div class="stat-label">Total Tests</div></div>
+            <div><div class="stat-value">0</div><div class="stat-label">Total Tests</div></div>
           </div>
           <div class="card card-hover stat-card">
             <span class="stat-icon">✅</span>
-            <div><div class="stat-value">9</div><div class="stat-label">Published</div></div>
+            <div><div class="stat-value">0</div><div class="stat-label">Published</div></div>
           </div>
           <div class="card card-hover stat-card">
             <span class="stat-icon">👩‍🎓</span>
-            <div><div class="stat-value">85</div><div class="stat-label">Students</div></div>
+            <div><div class="stat-value">0</div><div class="stat-label">Students</div></div>
           </div>
           <div class="card card-hover stat-card">
             <span class="stat-icon">📈</span>
-            <div><div class="stat-value">75%</div><div class="stat-label">Avg Score</div></div>
+            <div><div class="stat-value">—</div><div class="stat-label">Avg Score</div></div>
           </div>
         </div>
 
@@ -238,8 +238,8 @@
         const u = JSON.parse(userStr);
         if (u.name) {
           teacherName = u.name;
-          const welcomeHeading = document.querySelector('.welcome h1');
-          if (welcomeHeading) welcomeHeading.textContent = `Welcome back, ${u.name} 👋`;
+          const welcomeEl = document.getElementById('welcome-teacher-name');
+          if (welcomeEl) welcomeEl.textContent = u.name;
           const userDisplay = document.getElementById('teacher-user-display');
           if (userDisplay) userDisplay.textContent = `👩‍🏫 ${u.name}`;
         }
