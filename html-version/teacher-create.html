@@ -532,17 +532,23 @@
       const nextBtn = document.getElementById('step1-next');
 
       testDetails.title = title;
-      testDetails.topicDetails = topicInput;
+      testDetails.topicDetails = topicInput || title;
       testDetails.subject = topicInput ? topicInput.substring(0, 40) : title;
 
-      const isTopicValid = topicInput.length > 0;
-      const isPdfValid = testDetails.hasFile;
-
-      if (title.length > 0 && (isTopicValid || isPdfValid)) {
-        nextBtn.disabled = false;
-      } else {
-        nextBtn.disabled = true;
+      let isValid = false;
+      if (title.length > 0) {
+        if (testDetails.inputMode === 'topic') {
+          // In Topic Mode, Test Title itself (e.g. "Photosynthesis") is valid!
+          isValid = true;
+        } else if (testDetails.inputMode === 'pdf') {
+          // In PDF Mode, PDF file upload is required
+          isValid = testDetails.hasFile;
+        } else {
+          isValid = topicInput.length > 0 || testDetails.hasFile;
+        }
       }
+
+      nextBtn.disabled = !isValid;
     };
 
     // File Upload handling with FileReader text extraction
