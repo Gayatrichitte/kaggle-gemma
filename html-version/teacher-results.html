@@ -197,40 +197,6 @@
       font-size: .85rem;
     }
 
-    /* Question Performance Bars */
-    .q-perf-list {
-      display: flex;
-      flex-direction: column;
-      gap: .75rem;
-    }
-
-    .q-perf-item {
-      display: flex;
-      align-items: center;
-      gap: .75rem;
-      font-size: .85rem;
-    }
-
-    .q-perf-name {
-      width: 32px;
-      font-weight: 700;
-      color: var(--color-muted);
-    }
-
-    .q-perf-text {
-      flex: 1;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      font-size: .8rem;
-    }
-
-    .q-perf-pct {
-      font-weight: 700;
-      min-width: 42px;
-      text-align: right;
-    }
-
     /* ── Student Attempts Table ── */
     .table-card {
       background: var(--color-surface);
@@ -376,17 +342,14 @@
         <div class="test-header-card">
           <div class="test-header-info">
             <div style="display:flex; align-items:center; gap:.5rem; margin-bottom:.3rem;">
-              <span class="badge badge-neutral">Biology</span>
-              <span class="test-code-chip">GEM-472</span>
+              <span class="badge badge-neutral" id="header-subject">General</span>
+              <span class="test-code-chip" id="header-code">GEM-XXX</span>
             </div>
-            <h1>Introduction to Photosynthesis</h1>
-            <p class="test-header-sub">Published Jul 30, 2026 &middot; 8 Questions &middot; 21 Total Marks</p>
+            <h1 id="header-title">Class Assessment Results</h1>
+            <p class="test-header-sub" id="header-sub">Live Real-time Student Evaluation from Firebase</p>
           </div>
 
           <div style="display:flex; gap:.75rem;">
-            <button class="btn btn-secondary btn-sm" onclick="showToast('Exporting class results to CSV...')">
-              📥 Export CSV
-            </button>
             <a href="teacher-create.html" class="btn btn-primary btn-sm">
               + New Assessment
             </a>
@@ -398,112 +361,29 @@
           <div class="stat-card">
             <span class="stat-icon">👩‍🎓</span>
             <div>
-              <div class="stat-value" id="stat-total-students">28</div>
-              <div class="stat-label">Total Students</div>
+              <div class="stat-value" id="stat-total-students">0</div>
+              <div class="stat-label">Total Submissions</div>
             </div>
           </div>
           <div class="stat-card">
             <span class="stat-icon">📈</span>
             <div>
-              <div class="stat-value" id="stat-avg-score">74%</div>
+              <div class="stat-value" id="stat-avg-score">0%</div>
               <div class="stat-label">Average Score</div>
             </div>
           </div>
           <div class="stat-card">
             <span class="stat-icon">🏆</span>
             <div>
-              <div class="stat-value" style="color: var(--color-success);" id="stat-high-score">95%</div>
+              <div class="stat-value" style="color: var(--color-success);" id="stat-high-score">0%</div>
               <div class="stat-label">Highest Score</div>
             </div>
           </div>
           <div class="stat-card">
             <span class="stat-icon">🎯</span>
             <div>
-              <div class="stat-value" id="stat-pass-rate">89%</div>
+              <div class="stat-value" id="stat-pass-rate">0%</div>
               <div class="stat-label">Pass Rate</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Analytics Visualizations -->
-        <div class="analytics-grid">
-          <!-- Score Distribution -->
-          <div class="analytics-card">
-            <div class="card-title-row">
-              <span class="card-title">Score Distribution</span>
-              <span class="badge badge-neutral">28 Submissions</span>
-            </div>
-            <div class="dist-chart">
-              <div class="dist-row">
-                <span class="dist-label">90–100%</span>
-                <div class="dist-bar-track">
-                  <div class="dist-bar-fill" style="width: 35%; background: #10b981;"></div>
-                </div>
-                <span class="dist-count">10 std</span>
-              </div>
-              <div class="dist-row">
-                <span class="dist-label">75–89%</span>
-                <div class="dist-bar-track">
-                  <div class="dist-bar-fill" style="width: 42%; background: #2563eb;"></div>
-                </div>
-                <span class="dist-count">12 std</span>
-              </div>
-              <div class="dist-row">
-                <span class="dist-label">60–74%</span>
-                <div class="dist-bar-track">
-                  <div class="dist-bar-fill" style="width: 14%; background: #f59e0b;"></div>
-                </div>
-                <span class="dist-count">4 std</span>
-              </div>
-              <div class="dist-row">
-                <span class="dist-label">&lt; 60%</span>
-                <div class="dist-bar-track">
-                  <div class="dist-bar-fill" style="width: 7%; background: #ef4444;"></div>
-                </div>
-                <span class="dist-count">2 std</span>
-              </div>
-            </div>
-          </div>
-
-          <!-- Question Accuracy -->
-          <div class="analytics-card">
-            <div class="card-title-row">
-              <span class="card-title">Question Accuracy Rate</span>
-              <span class="badge badge-gemma">Gemma Analytics</span>
-            </div>
-            <div class="q-perf-list">
-              <div class="q-perf-item">
-                <span class="q-perf-name">Q1</span>
-                <span class="q-perf-text">Primary pigment in photosynthesis</span>
-                <div class="dist-bar-track" style="height:8px;">
-                  <div class="dist-bar-fill" style="width: 96%; background: #10b981;"></div>
-                </div>
-                <span class="q-perf-pct" style="color: #10b981;">96%</span>
-              </div>
-              <div class="q-perf-item">
-                <span class="q-perf-name">Q2</span>
-                <span class="q-perf-text">ATP consumed in Calvin cycle</span>
-                <div class="dist-bar-track" style="height:8px;">
-                  <div class="dist-bar-fill" style="width: 68%; background: #f59e0b;"></div>
-                </div>
-                <span class="q-perf-pct" style="color: #f59e0b;">68%</span>
-              </div>
-              <div class="q-perf-item">
-                <span class="q-perf-name">Q6</span>
-                <span class="q-perf-text">Photorespiration impact</span>
-                <div class="dist-bar-track" style="height:8px;">
-                  <div class="dist-bar-fill" style="width: 52%; background: #ef4444;"></div>
-                </div>
-                <span class="q-perf-pct" style="color: #ef4444;">52%</span>
-              </div>
-              <div class="q-perf-item">
-                <span class="q-perf-name">Q8</span>
-                <span class="q-perf-text">C3 vs C4 structural adaptations</span>
-                <div class="dist-bar-track" style="height:8px;">
-                  <div class="dist-bar-fill" style="width: 60%; background: #f59e0b;"></div>
-                </div>
-                <span class="q-perf-pct" style="color: #f59e0b;">60%</span>
-              </div>
             </div>
           </div>
         </div>
@@ -528,7 +408,7 @@
                 </tr>
               </thead>
               <tbody id="attempts-table-body">
-                <!-- Rendered by JS -->
+                <!-- Rendered dynamically from Firebase / LocalStorage -->
               </tbody>
             </table>
           </div>
@@ -537,118 +417,132 @@
     </div>
   </div>
 
-  <!-- Student Detail Modal -->
-  <div class="modal-overlay" id="student-modal">
-    <div class="modal-box">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-        <h2 style="font-size:1.3rem;" id="m-student-name">Aryan Mehta</h2>
-        <span class="badge badge-gemma">Gemma Evaluated</span>
-      </div>
-      <div style="background:var(--color-bg); padding:1rem; border-radius:var(--radius-lg); border:1px solid var(--color-border); margin-bottom:1.25rem;">
-        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem;">
-          <span style="font-size:.85rem; color:var(--color-muted);">Final Score:</span>
-          <strong id="m-score">17 / 21 (81%)</strong>
-        </div>
-        <div style="display:flex; justify-content:space-between; margin-bottom:.5rem;">
-          <span style="font-size:.85rem; color:var(--color-muted);">Submission Time:</span>
-          <span id="m-time" style="font-size:.85rem; font-weight:600;">Jul 30, 10:45 AM</span>
-        </div>
-        <div style="display:flex; justify-content:space-between;">
-          <span style="font-size:.85rem; color:var(--color-muted);">Status:</span>
-          <span class="status-pill status-graded" id="m-status">Graded</span>
-        </div>
-      </div>
-
-      <p style="font-size:.875rem; color:var(--color-muted); margin-bottom:1.5rem;">
-        Click below to inspect full question-by-question responses and AI breakdown.
-      </p>
-
-      <div style="display:flex; gap:.75rem; justify-content:flex-end;">
-        <button class="btn btn-secondary" onclick="closeStudentModal()">Close</button>
-        <a id="m-view-link" href="student-results.html" class="btn btn-primary">Open Detailed Results →</a>
-      </div>
-    </div>
-  </div>
-
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
-  <script>
-    /* ── Mock Student Attempts Data ── */
-    const ATTEMPTS = [
-      { id: 1, name: 'Rohan Das', score: 20, maxScore: 21, pct: 95, time: 'Jul 30, 10:12 AM', status: 'Graded', statusCls: 'status-graded' },
-      { id: 2, name: 'Aryan Mehta', score: 17, maxScore: 21, pct: 81, time: 'Jul 30, 10:45 AM', status: 'Graded', statusCls: 'status-graded' },
-      { id: 3, name: 'Karan Joshi', score: 18, maxScore: 21, pct: 86, time: 'Jul 30, 11:02 AM', status: 'Graded', statusCls: 'status-graded' },
-      { id: 4, name: 'Priya Nair', score: 16, maxScore: 21, pct: 76, time: 'Jul 30, 11:20 AM', status: 'Graded', statusCls: 'status-graded' },
-      { id: 5, name: 'Ananya Sharma', score: 19, maxScore: 21, pct: 90, time: 'Jul 30, 11:35 AM', status: 'Graded', statusCls: 'status-graded' },
-      { id: 6, name: 'Sneha Iyer', score: 13, maxScore: 21, pct: 62, time: 'Jul 30, 11:50 AM', status: 'Needs Help', statusCls: 'status-help' },
-      { id: 7, name: 'Vikram Rao', score: 15, maxScore: 21, pct: 71, time: 'Jul 30, 12:05 PM', status: 'Pending Review', statusCls: 'status-pending' },
-      { id: 8, name: 'Neha Gupta', score: 20, maxScore: 21, pct: 95, time: 'Jul 30, 12:18 PM', status: 'Graded', statusCls: 'status-graded' },
-    ];
 
-    window.addEventListener('DOMContentLoaded', () => {
-      renderTable(ATTEMPTS);
+  <script type="module">
+    import { db, collection, getDocs, ensureFirebaseAuth } from "./firebase-config.js";
+
+    let attemptsData = [];
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      await ensureFirebaseAuth();
+      await loadAttempts();
     });
 
-    function renderTable(data) {
+    async function loadAttempts() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const code = urlParams.get('code');
+      if (code) document.getElementById('header-code').textContent = code;
+
+      // 1. Try LocalStorage
+      const localResultsStr = localStorage.getItem('ea_student_results');
+      if (localResultsStr) {
+        try {
+          const allRes = JSON.parse(localResultsStr);
+          attemptsData = code ? allRes.filter(r => r.testCode === code) : allRes;
+        } catch(e) {}
+      }
+
+      // 2. Try Firebase Firestore
+      try {
+        const querySnap = await getDocs(collection(db, "results"));
+        const firestoreList = [];
+        querySnap.forEach(docSnap => {
+          const data = docSnap.data();
+          if (!code || data.testCode === code) {
+            firestoreList.push(data);
+          }
+        });
+        if (firestoreList.length > 0) {
+          attemptsData = firestoreList;
+        }
+      } catch (err) {
+        console.warn("Firestore attempts fetch notice:", err);
+      }
+
+      renderDashboard();
+    }
+
+    function renderDashboard() {
       const tbody = document.getElementById('attempts-table-body');
       tbody.innerHTML = '';
 
-      data.forEach(item => {
+      if (attemptsData.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6" style="padding:2rem; text-align:center; color:var(--color-muted);">
+              No student test submissions recorded yet in Firebase for this assessment.
+            </td>
+          </tr>
+        `;
+        document.getElementById('stat-total-students').textContent = '0';
+        document.getElementById('stat-avg-score').textContent = '0%';
+        document.getElementById('stat-high-score').textContent = '0%';
+        document.getElementById('stat-pass-rate').textContent = '0%';
+        return;
+      }
+
+      let totalPct = 0;
+      let maxPct = 0;
+      let passCount = 0;
+
+      attemptsData.forEach(item => {
+        const pct = item.percentage || 0;
+        totalPct += pct;
+        if (pct > maxPct) maxPct = pct;
+        if (pct >= 50) passCount++;
+
+        const studentName = item.studentName || 'Student';
+        const dateStr = item.submittedAt ? new Date(item.submittedAt).toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }) : 'Recent';
+
         const tr = document.createElement('tr');
-        tr.onclick = () => openStudentModal(item);
+        tr.onclick = () => { window.location.href = `student-results.html?name=${encodeURIComponent(studentName)}&code=${encodeURIComponent(item.testCode || 'GEM-XXX')}`; };
 
         tr.innerHTML = `
           <td>
             <div class="student-cell">
-              <div class="student-avatar">${item.name[0]}</div>
-              <span class="student-name">${item.name}</span>
+              <div class="student-avatar">${studentName[0]}</div>
+              <span class="student-name">${studentName}</span>
             </div>
           </td>
-          <td style="font-weight: 700;">${item.score} / ${item.maxScore}</td>
+          <td style="font-weight: 700;">${item.score || 0} / ${item.maxScore || 0}</td>
           <td>
             <div style="display:flex; align-items:center; gap:.5rem;">
-              <div class="progress-wrap" style="width:70px; height:6px;">
-                <div class="progress-bar" style="width: ${item.pct}%;"></div>
+              <div class="progress-wrap" style="width:70px; height:6px; background:#e2e8f0; border-radius:9999px; overflow:hidden;">
+                <div class="progress-bar" style="width: ${pct}%; height:100%; background:${pct >= 50 ? '#10b981' : '#ef4444'};"></div>
               </div>
-              <span style="font-weight:700; font-size:.85rem;">${item.pct}%</span>
+              <span style="font-weight:700; font-size:.85rem;">${pct}%</span>
             </div>
           </td>
-          <td style="color: var(--color-muted); font-size:.85rem;">${item.time}</td>
-          <td><span class="status-pill ${item.statusCls}">${item.status}</span></td>
+          <td style="color: var(--color-muted); font-size:.85rem;">${dateStr}</td>
+          <td><span class="status-pill ${pct >= 50 ? 'status-graded' : 'status-help'}">${pct >= 50 ? 'Graded' : 'Needs Review'}</span></td>
           <td>
-            <button class="btn btn-secondary btn-sm" onclick="event.stopPropagation(); openStudentModalDirect('${encodeURIComponent(item.name)}')">
+            <a href="student-results.html?name=${encodeURIComponent(studentName)}&code=${encodeURIComponent(item.testCode || 'GEM-XXX')}" class="btn btn-secondary btn-sm" onclick="event.stopPropagation();">
               View
-            </button>
+            </a>
           </td>
         `;
         tbody.appendChild(tr);
       });
+
+      const count = attemptsData.length;
+      document.getElementById('stat-total-students').textContent = count;
+      document.getElementById('stat-avg-score').textContent = `${Math.round(totalPct / count)}%`;
+      document.getElementById('stat-high-score').textContent = `${maxPct}%`;
+      document.getElementById('stat-pass-rate').textContent = `${Math.round((passCount / count) * 100)}%`;
     }
 
-    function filterTable(query) {
+    window.filterTable = function(query) {
       const q = query.toLowerCase();
-      const filtered = ATTEMPTS.filter(a => a.name.toLowerCase().includes(q));
-      renderTable(filtered);
-    }
+      const tbody = document.getElementById('attempts-table-body');
+      const rows = tbody.getElementsByTagName('tr');
 
-    function openStudentModal(item) {
-      document.getElementById('m-student-name').textContent = item.name;
-      document.getElementById('m-score').textContent = `${item.score} / ${item.maxScore} (${item.pct}%)`;
-      document.getElementById('m-time').textContent = item.time;
-      document.getElementById('m-status').textContent = item.status;
-      document.getElementById('m-status').className = `status-pill ${item.statusCls}`;
-
-      document.getElementById('m-view-link').href = `student-results.html?name=${encodeURIComponent(item.name)}&code=GEM-472`;
-      document.getElementById('student-modal').classList.add('active');
-    }
-
-    function openStudentModalDirect(name) {
-      window.location.href = `student-results.html?name=${name}&code=GEM-472`;
-    }
-
-    function closeStudentModal() {
-      document.getElementById('student-modal').classList.remove('active');
-    }
+      for (let i = 0; i < rows.length; i++) {
+        const text = rows[i].textContent.toLowerCase();
+        rows[i].style.display = text.includes(q) ? '' : 'none';
+      }
+    };
   </script>
 </body>
 </html>

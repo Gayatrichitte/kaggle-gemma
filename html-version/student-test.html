@@ -555,27 +555,8 @@
   <script type="module">
     import { db, doc, getDoc, setDoc, ensureFirebaseAuth } from "./firebase-config.js";
 
-    /* ── Exam Questions Data ── */
-    let QUESTIONS = [
-      {
-        id: 1,
-        type: 'MCQ',
-        difficulty: 'Easy',
-        marks: 2,
-        question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
-        options: ['Carotenoid', 'Chlorophyll', 'Xanthophyll', 'Anthocyanin'],
-        answer: 'Chlorophyll'
-      },
-      {
-        id: 2,
-        type: 'True/False',
-        difficulty: 'Easy',
-        marks: 1,
-        question: 'Oxygen is released as a by-product of the light-dependent reactions in photosynthesis.',
-        options: ['True', 'False'],
-        answer: 'True'
-      }
-    ];
+    /* ── Dynamic Exam Questions Data (Fetched from Firebase) ── */
+    let QUESTIONS = [];
 
     /* ── Exam State ── */
     let currentIndex = 0;
@@ -835,26 +816,88 @@
       let correctCount = 0;
       let totalMarksObtained = 0;
       let maxPossibleMarks = 0;
+      const itemizedDetails = [];
 
-      QUESTIONS.forEach(q => {
+      QUESTIONS.forEach((q, idx) => {
         const qMarks = q.marks || 2;
         maxPossibleMarks += qMarks;
-        if (userAnswers[q.id] && String(userAnswers[q.id]).trim().toLowerCase() === String(q.answer).trim().toLowerCase()) {
+        const givenAns = userAnswers[q.id] ? String(userAnswers[q.id]).trim() : '';
+        const correctAns = String(q.answer || '').trim();
+        const isCorrect = givenAns.toLowerCase() === correctAns.toLowerCase() && givenAns !== '';
+
+        if (isCorrect) {
           correctCount++;
           totalMarksObtained += qMarks;
         }
+
+        itemizedDetails.push({
+          qId: q.id,
+          question: q.question,
+          givenAnswer: givenAns || 'Not Answered',
+          correctAnswer: correctAns,
+          isCorrect: isCorrect,
+          marksObtained: isCorrect ? qMarks : 0,
+          maxMarks: qMarks
+        });
       });
 
       const answeredCount = Object.keys(userAnswers).filter(id => String(userAnswers[id]).trim() !== '').length;
+      const percentage = maxPossibleMarks > 0 ? Math.round((totalMarksObtained / maxPossibleMarks) * 100) : 0;
 
       document.getElementById('summary-student-name').textContent = currentStudentName;
       document.getElementById('summary-test-code').textContent = currentTestCode;
       document.getElementById('summary-total-q').textContent = QUESTIONS.length;
       document.getElementById('summary-answered-q').textContent = `${answeredCount} / ${QUESTIONS.length}`;
 
-      // Save Student Result to Firebase Firestore
-      const resultId = `${currentTestCode}_${currentStudentName.replace(/\s+/g, '_')}_${Date.now()}`;
+      // Render Itemized Answers Comparison Card for Student
+      const reviewBox = document.createElement('div');
+      reviewBox.style.cssText = "width:100%; max-width:550px; margin:1.5rem 0; text-align:left; background:#fff; border:1px solid var(--color-border); border-radius:var(--radius-xl); padding:1.25rem; box-shadow:var(--shadow-md);";
+      
+      let reviewHtml = `
+        <div style="font-size:1.1rem; font-weight:800; color:var(--color-primary); margin-bottom:1rem; display:flex; justify-content:space-between; align-items:center;">
+          <span>📊 Assessment Results vs GEM-XXX</span>
+          <span class="badge" style="background:${percentage >= 50 ? '#d1fae5' : '#fee2e2'}; color:${percentage >= 50 ? '#065f46' : '#991b1b'}; font-size:0.85rem; padding:0.35rem 0.75rem;">
+            Score: ${totalMarksObtained} / ${maxPossibleMarks} (${percentage}%)
+          </span>
+        </div>
+        <div style="display:flex; flex-direction:column; gap:0.75rem;">
+      `;
+
+      itemizedDetails.forEach((item, i) => {
+        const bg = item.isCorrect ? '#f0fdf4' : '#fef2f2';
+        const border = item.isCorrect ? '#bbf7d0' : '#fecaca';
+        const icon = item.isCorrect ? '✅' : '❌';
+
+        reviewHtml += `
+          <div style="background:${bg}; border:1px solid ${border}; border-radius:var(--radius-lg); padding:0.75rem 1rem; font-size:0.9rem;">
+            <div style="font-weight:700; color:var(--color-primary); margin-bottom:0.25rem;">
+              Q${i + 1}. ${item.question}
+            </div>
+            <div style="display:flex; justify-content:space-between; gap:0.5rem; flex-wrap:wrap; font-size:0.85rem; margin-top:0.35rem;">
+              <div><strong>Your Answer:</strong> <span style="color:${item.isCorrect ? '#059669' : '#dc2626'}; font-weight:700;">${item.givenAnswer}</span></div>
+              <div><strong>GEM-XXX Answer:</strong> <span style="color:#059669; font-weight:700;">${item.correctAnswer}</span></div>
+            </div>
+            <div style="margin-top:0.25rem; font-size:0.78rem; color:${item.isCorrect ? '#047857' : '#b91c1c'}; font-weight:700;">
+              ${icon} ${item.isCorrect ? `Correct (+${item.marksObtained} marks)` : 'Incorrect (0 marks)'}
+            </div>
+          </div>
+        `;
+      });
+      reviewHtml += `</div>`;
+      reviewBox.innerHTML = reviewHtml;
+
+      const summaryCard = document.querySelector('.completion-container .card');
+      if (summaryCard && summaryCard.parentNode) {
+        summaryCard.parentNode.insertBefore(reviewBox, summaryCard.nextSibling);
+      }
+
+      // Save Student Result in Firebase Firestore under student folder & results collection
+      const sanitizedStudentName = currentStudentName.replace(/[^a-zA-Z0-9_-]/g, '_');
+      const timestamp = Date.now();
+      const resultId = `${currentTestCode}_${sanitizedStudentName}_${timestamp}`;
+
       const resultObj = {
+        resultId: resultId,
         testCode: currentTestCode,
         studentName: currentStudentName,
         totalQuestions: QUESTIONS.length,
@@ -862,14 +905,33 @@
         correctCount: correctCount,
         score: totalMarksObtained,
         maxScore: maxPossibleMarks,
-        percentage: maxPossibleMarks > 0 ? Math.round((totalMarksObtained / maxPossibleMarks) * 100) : 0,
+        percentage: percentage,
         userAnswers: userAnswers,
+        itemizedDetails: itemizedDetails,
         submittedAt: new Date().toISOString()
       };
 
+      // Save to localStorage
+      const existingResultsStr = localStorage.getItem('ea_student_results');
+      let allResults = existingResultsStr ? JSON.parse(existingResultsStr) : [];
+      allResults.unshift(resultObj);
+      localStorage.setItem('ea_student_results', JSON.stringify(allResults));
+      sessionStorage.setItem('ea_last_result', JSON.stringify(resultObj));
+
+      // Save to Firebase Firestore under results collection AND students folder
       try {
+        await ensureFirebaseAuth();
         await setDoc(doc(db, "results", resultId), resultObj);
-        console.log("Student test result persisted to Firebase Firestore:", resultId);
+        await setDoc(doc(db, "students", sanitizedStudentName, "attempts", resultId), resultObj);
+        await setDoc(doc(db, "students", sanitizedStudentName), {
+          name: currentStudentName,
+          lastAttemptCode: currentTestCode,
+          lastScore: totalMarksObtained,
+          lastPercentage: percentage,
+          lastActiveAt: new Date().toISOString()
+        }, { merge: true });
+
+        console.log(`✅ Student result saved in Firebase Firestore under students/${sanitizedStudentName}/attempts/${resultId}`);
       } catch (err) {
         console.warn("Firestore result save notice:", err);
       }

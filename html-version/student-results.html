@@ -254,12 +254,6 @@
       border: 1px solid #fde68a;
     }
 
-    .status-skipped {
-      background: #f1f5f9;
-      color: #475569;
-      border: 1px solid #e2e8f0;
-    }
-
     .badge-gemma-eval {
       font-size: .72rem;
       font-weight: 600;
@@ -359,9 +353,9 @@
         <div class="header-top">
           <div class="test-info">
             <span class="badge badge-gemma" style="margin-bottom: .5rem;">Kaggle Gemma Evaluation</span>
-            <h1 id="res-test-title">Introduction to Photosynthesis</h1>
+            <h1 id="res-test-title">Assessment Results</h1>
             <p class="student-meta">
-              Student: <strong id="res-student-name">Aryan Mehta</strong> &middot; Code: <strong id="res-test-code">GEM-472</strong> &middot; Date: <strong>Jul 30, 2026</strong>
+              Student: <strong id="res-student-name">Student</strong> &middot; Code: <strong id="res-test-code">GEM-XXX</strong> &middot; Date: <strong id="res-date">Today</strong>
             </p>
           </div>
           <button class="btn btn-secondary btn-sm" onclick="window.print()">
@@ -371,23 +365,23 @@
 
         <div class="score-overview-grid">
           <div class="score-radial-box">
-            <div class="score-num" id="res-score-num">17 / 21</div>
+            <div class="score-num" id="res-score-num">0 / 0</div>
             <div class="score-total">Total Marks</div>
-            <div class="score-pct-badge" id="res-score-pct">81% Score</div>
+            <div class="score-pct-badge" id="res-score-pct">0% Score</div>
           </div>
 
           <div class="stats-breakdown-grid">
             <div class="stat-pill-card">
-              <span class="stat-pill-count" style="color: var(--color-success);" id="stat-correct">5</span>
+              <span class="stat-pill-count" style="color: var(--color-success);" id="stat-correct">0</span>
               <span class="stat-pill-label">Correct</span>
             </div>
             <div class="stat-pill-card">
-              <span class="stat-pill-count" style="color: var(--color-error);" id="stat-incorrect">2</span>
+              <span class="stat-pill-count" style="color: var(--color-error);" id="stat-incorrect">0</span>
               <span class="stat-pill-label">Incorrect</span>
             </div>
             <div class="stat-pill-card">
-              <span class="stat-pill-count" style="color: var(--color-accent);" id="stat-rank">#5</span>
-              <span class="stat-pill-label">Class Rank</span>
+              <span class="stat-pill-count" style="color: var(--color-accent);" id="stat-rank">#1</span>
+              <span class="stat-pill-label">Status</span>
             </div>
           </div>
         </div>
@@ -398,18 +392,16 @@
         <div class="insight-header">
           <div class="insight-title-group">
             <div class="gemma-orb" style="width: 24px; height: 24px;"></div>
-            <span class="insight-title">Gemma Assessment Insight</span>
+            <span class="insight-title">Gemma AI Learning Insight</span>
           </div>
           <span class="badge badge-gemma">AI Learning Report</span>
         </div>
         <div class="insight-body">
           <p id="insight-text">
-            Aryan demonstrated strong foundational understanding of <strong>Light-Dependent Reactions</strong> and basic chloroplast components. However, analysis highlights minor conceptual gaps in <strong>Photorespiration efficiency</strong> and energy molecule counts in the <strong>Calvin Cycle (C3 vs C4 pathways)</strong>.
+            Evaluation complete. Your answers were compared against the GEM-XXX source test object in Firebase.
           </p>
-          <div class="insight-tags">
-            <span class="insight-tag tag-strong">✓ Strong: Chlorophyll &amp; Light Reactions</span>
-            <span class="insight-tag tag-weak">⚠️ Needs Review: Photorespiration &amp; RuBisCO</span>
-            <span class="insight-tag tag-weak">⚠️ Needs Review: C3 / C4 Pathway Differences</span>
+          <div class="insight-tags" id="insight-tags-box">
+            <span class="insight-tag tag-strong">✓ Gemma Automated Grading Complete</span>
           </div>
         </div>
       </div>
@@ -417,11 +409,11 @@
       <!-- ── Question-by-Question Review ── -->
       <div class="review-section-title">
         <span>Question Breakdown &amp; Feedback</span>
-        <span style="font-size: .85rem; font-weight: 500; color: var(--color-muted);" id="q-total-count">8 Questions Reviewed</span>
+        <span style="font-size: .85rem; font-weight: 500; color: var(--color-muted);" id="q-total-count">0 Questions Reviewed</span>
       </div>
 
       <div id="questions-review-list">
-        <!-- Rendered by JS -->
+        <!-- Rendered dynamically from Firebase / LocalStorage -->
       </div>
 
       <!-- ── Actions ── -->
@@ -435,203 +427,133 @@
 
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
-  <script>
-    /* ── Mock Evaluated Questions Data ── */
-    const EVALUATED_QUESTIONS = [
-      {
-        id: 1,
-        type: 'MCQ',
-        difficulty: 'Easy',
-        maxMarks: 2,
-        earnedMarks: 2,
-        status: 'correct',
-        question: 'Which of the following is the primary pigment responsible for photosynthesis in green plants?',
-        userAnswer: 'Chlorophyll',
-        correctAnswer: 'Chlorophyll',
-        isAiEvaluated: false,
-        explanation: 'Chlorophyll absorbs blue and red wavelengths of light while reflecting green light, making it the primary photosynthetic pigment.'
-      },
-      {
-        id: 2,
-        type: 'MCQ',
-        difficulty: 'Hard',
-        maxMarks: 3,
-        earnedMarks: 3,
-        status: 'correct',
-        question: 'In the Calvin cycle, how many ATP molecules are consumed per CO₂ molecule fixed?',
-        userAnswer: '3',
-        correctAnswer: '3',
-        isAiEvaluated: false,
-        explanation: 'The Calvin cycle uses 2 ATP molecules in the reduction stage and 1 ATP molecule in the regeneration of RuBP, totaling 3 ATP per fixed CO₂.'
-      },
-      {
-        id: 3,
-        type: 'True/False',
-        difficulty: 'Easy',
-        maxMarks: 1,
-        earnedMarks: 1,
-        status: 'correct',
-        question: 'The light-dependent reactions of photosynthesis occur in the stroma of the chloroplast.',
-        userAnswer: 'False',
-        correctAnswer: 'False',
-        isAiEvaluated: false,
-        explanation: 'Light-dependent reactions occur within the thylakoid membranes. The stroma is the site of light-independent reactions (Calvin cycle).'
-      },
-      {
-        id: 4,
-        type: 'True/False',
-        difficulty: 'Easy',
-        maxMarks: 1,
-        earnedMarks: 0,
-        status: 'incorrect',
-        question: 'Oxygen is released as a by-product of the light-dependent reactions.',
-        userAnswer: 'False',
-        correctAnswer: 'True',
-        isAiEvaluated: false,
-        explanation: 'Photolysis of water during light reactions splits H₂O molecules, releasing oxygen gas (O₂) into the atmosphere.'
-      },
-      {
-        id: 5,
-        type: 'One-liner',
-        difficulty: 'Medium',
-        maxMarks: 2,
-        earnedMarks: 2,
-        status: 'correct',
-        question: 'What is the primary role of NADPH in the Calvin cycle?',
-        userAnswer: 'NADPH provides reducing power and high-energy electrons to reduce 3-PGA into G3P.',
-        correctAnswer: 'Provides electrons/reducing power to convert 3-PGA to G3P.',
-        isAiEvaluated: true,
-        explanation: 'Gemma Evaluation: Full credit. The student correctly identified both electron transfer (reducing power) and the specific substrate conversion.'
-      },
-      {
-        id: 6,
-        type: 'Brief Answer',
-        difficulty: 'Hard',
-        maxMarks: 5,
-        earnedMarks: 3,
-        status: 'partial',
-        question: 'Explain the significance of photorespiration and its impact on plant photosynthetic efficiency.',
-        userAnswer: 'Photorespiration happens when RuBisCO reacts with oxygen instead of carbon dioxide, which wastes energy.',
-        correctAnswer: 'RuBisCO fixes O₂ instead of CO₂, releasing fixed carbon and consuming ATP without producing sugar, reducing net carbon fixation efficiency by up to 25%.',
-        isAiEvaluated: true,
-        explanation: 'Gemma Evaluation: Partial credit (3/5). Correctly noted RuBisCO oxygenation and energy waste, but omitted quantitative impact on carbon fixation yield and environmental triggers.'
-      },
-      {
-        id: 7,
-        type: 'MCQ',
-        difficulty: 'Medium',
-        maxMarks: 2,
-        earnedMarks: 2,
-        status: 'correct',
-        question: 'Which of the following organisms perform anoxygenic photosynthesis?',
-        userAnswer: 'Purple sulfur bacteria',
-        correctAnswer: 'Purple sulfur bacteria',
-        isAiEvaluated: false,
-        explanation: 'Purple sulfur bacteria use hydrogen sulfide (H₂S) instead of water as an electron donor, producing sulfur instead of oxygen.'
-      },
-      {
-        id: 8,
-        type: 'Brief Answer',
-        difficulty: 'Hard',
-        maxMarks: 5,
-        earnedMarks: 3,
-        status: 'partial',
-        question: 'Compare and contrast the structural and biochemical adaptations of C3 and C4 plants.',
-        userAnswer: 'C3 plants fix carbon directly while C4 plants use bundle sheath cells to concentrate CO2.',
-        correctAnswer: 'C3 plants fix CO₂ directly via RuBisCO in mesophyll cells. C4 plants use Kranz anatomy and PEP carboxylase to separate initial carbon fixation from the Calvin cycle, minimizing photorespiration.',
-        isAiEvaluated: true,
-        explanation: 'Gemma Evaluation: Partial credit (3/5). Mentioned bundle sheath cells and direct fixation, but missed mentioning PEP carboxylase and Kranz anatomy details.'
-      }
-    ];
 
-    /* ── Render Logic ── */
-    window.addEventListener('DOMContentLoaded', () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const name = urlParams.get('name') || sessionStorage.getItem('studentName') || 'Aryan Mehta';
-      const code = urlParams.get('code') || sessionStorage.getItem('testCode') || 'GEM-472';
+  <script type="module">
+    import { db, doc, getDoc, ensureFirebaseAuth } from "./firebase-config.js";
 
-      document.getElementById('res-student-name').textContent = name;
-      document.getElementById('res-test-code').textContent = code;
-
-      renderQuestionsReview();
+    window.addEventListener('DOMContentLoaded', async () => {
+      await ensureFirebaseAuth();
+      await loadResultData();
     });
 
-    function renderQuestionsReview() {
+    async function loadResultData() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const paramCode = urlParams.get('code');
+      const paramName = urlParams.get('name');
+
+      let resultObj = null;
+
+      // 1. Try SessionStorage
+      const lastResStr = sessionStorage.getItem('ea_last_result');
+      if (lastResStr) {
+        try { resultObj = JSON.parse(lastResStr); } catch(e) {}
+      }
+
+      // 2. Try LocalStorage
+      if (!resultObj) {
+        const localResultsStr = localStorage.getItem('ea_student_results');
+        if (localResultsStr) {
+          try {
+            const allRes = JSON.parse(localResultsStr);
+            if (paramCode) {
+              resultObj = allRes.find(r => r.testCode === paramCode);
+            }
+            if (!resultObj && allRes.length > 0) {
+              resultObj = allRes[0];
+            }
+          } catch(e) {}
+        }
+      }
+
+      // 3. Try Firebase Firestore
+      if (!resultObj && paramCode && paramName) {
+        const sanitizedName = paramName.replace(/[^a-zA-Z0-9_-]/g, '_');
+        const docRef = doc(db, "students", sanitizedName);
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            resultObj = docSnap.data();
+          }
+        } catch(e) {}
+      }
+
+      if (!resultObj) {
+        document.getElementById('questions-review-list').innerHTML = `
+          <div class="card" style="padding:2rem; text-align:center; color:var(--color-muted);">
+            No submitted test attempt found. Please attempt an assessment from the Student Portal first.
+          </div>
+        `;
+        return;
+      }
+
+      // Populate UI with dynamic result object from Firebase / LocalStorage
+      document.getElementById('res-student-name').textContent = resultObj.studentName || 'Student';
+      document.getElementById('res-test-code').textContent = resultObj.testCode || 'GEM-XXX';
+      document.getElementById('res-score-num').textContent = `${resultObj.score || 0} / ${resultObj.maxScore || 0}`;
+      document.getElementById('res-score-pct').textContent = `${resultObj.percentage || 0}% Score`;
+      document.getElementById('stat-correct').textContent = resultObj.correctCount || 0;
+      document.getElementById('stat-incorrect').textContent = (resultObj.totalQuestions || 0) - (resultObj.correctCount || 0);
+      document.getElementById('stat-rank').textContent = (resultObj.percentage >= 80 ? '🌟 Excellent' : resultObj.percentage >= 50 ? '👍 Pass' : '⚠️ Review');
+
+      const dateStr = resultObj.submittedAt ? new Date(resultObj.submittedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'Today';
+      document.getElementById('res-date').textContent = dateStr;
+
+      // Update Gemma Learning Insight Text dynamically
+      const insightText = document.getElementById('insight-text');
+      if (resultObj.percentage >= 80) {
+        insightText.innerHTML = `<strong>${resultObj.studentName}</strong> performed exceptionally well on <strong>${resultObj.testCode}</strong>, scoring <strong>${resultObj.percentage}%</strong>. Answers matched the GEM-XXX master document in Firebase!`;
+      } else if (resultObj.percentage >= 50) {
+        insightText.innerHTML = `<strong>${resultObj.studentName}</strong> achieved a passing score of <strong>${resultObj.percentage}%</strong> on <strong>${resultObj.testCode}</strong>. Review the incorrect questions below to strengthen concepts.`;
+      } else {
+        insightText.innerHTML = `<strong>${resultObj.studentName}</strong> scored <strong>${resultObj.percentage}%</strong> on <strong>${resultObj.testCode}</strong>. Recommended topic review and re-attempt suggested.`;
+      }
+
+      // Render Itemized Questions Breakdown
       const container = document.getElementById('questions-review-list');
       container.innerHTML = '';
 
-      let totalEarned = 0;
-      let totalMax = 0;
-      let correctCount = 0;
-      let incorrectCount = 0;
-      let skippedCount = 0;
+      const items = resultObj.itemizedDetails || [];
+      document.getElementById('q-total-count').textContent = `${items.length} Questions Reviewed`;
 
-      EVALUATED_QUESTIONS.forEach((q, i) => {
-        totalEarned += q.earnedMarks;
-        totalMax += q.maxMarks;
-
-        if (q.status === 'correct') correctCount++;
-        else if (q.status === 'incorrect') incorrectCount++;
-        else if (q.status === 'skipped') skippedCount++;
-        else correctCount++; // partial counted toward correct/attempted
-
+      items.forEach((item, i) => {
         const card = document.createElement('div');
         card.className = 'q-review-card';
 
-        // Badges
-        let statusBadgeClass = 'status-correct';
-        let statusText = 'Correct';
-        if (q.status === 'incorrect') { statusBadgeClass = 'status-incorrect'; statusText = 'Incorrect'; }
-        else if (q.status === 'partial') { statusBadgeClass = 'status-partial'; statusText = 'Partial Credit'; }
-        else if (q.status === 'skipped') { statusBadgeClass = 'status-skipped'; statusText = 'Skipped'; }
-
-        const aiBadgeHtml = q.isAiEvaluated ? `<span class="badge-gemma-eval">🤖 Evaluated by Gemma</span>` : '';
-
-        const ansBoxClass = q.status === 'correct' ? 'ans-box-correct' : q.status === 'incorrect' ? 'ans-box-incorrect' : 'ans-box';
+        const statusClass = item.isCorrect ? 'status-correct' : 'status-incorrect';
+        const statusText = item.isCorrect ? 'Correct' : 'Incorrect';
+        const ansBoxClass = item.isCorrect ? 'ans-box-correct' : 'ans-box-incorrect';
 
         card.innerHTML = `
           <div class="q-review-header">
             <div class="q-review-meta">
               <span style="font-weight:700; font-size:.85rem;">Q${i+1}</span>
-              <span class="badge badge-neutral">${q.type}</span>
-              <span class="q-status-badge ${statusBadgeClass}">${statusText}</span>
-              ${aiBadgeHtml}
+              <span class="q-status-badge ${statusClass}">${statusText}</span>
+              <span class="badge-gemma-eval">🤖 Evaluated vs GEM-XXX</span>
             </div>
             <span style="font-weight:700; font-size:.9rem; color:var(--color-primary);">
-              ${q.earnedMarks} / ${q.maxMarks} Marks
+              ${item.marksObtained} / ${item.maxMarks} Marks
             </span>
           </div>
 
-          <div class="q-review-prompt">${q.question}</div>
+          <div class="q-review-prompt">${item.question}</div>
 
           <div class="answer-comparison-grid">
             <div class="ans-box ${ansBoxClass}">
-              <div class="ans-label">Your Answer</div>
-              <div class="ans-val">${q.userAnswer || '<em>No answer provided</em>'}</div>
+              <div class="ans-label">Student Answer</div>
+              <div class="ans-val">${item.givenAnswer || '<em>No answer provided</em>'}</div>
             </div>
             <div class="ans-box ans-box-correct">
-              <div class="ans-label">Correct / Ideal Answer</div>
-              <div class="ans-val">${q.correctAnswer}</div>
+              <div class="ans-val">${item.correctAnswer}</div>
             </div>
           </div>
 
           <div class="q-explanation-box">
-            <div class="explanation-title">Explanation &amp; Feedback</div>
-            <div>${q.explanation}</div>
+            <div class="explanation-title">Feedback</div>
+            <div>${item.isCorrect ? '✅ Correct! Answer matches GEM-XXX master answer key in Firebase.' : `❌ Answer given (${item.givenAnswer}) did not match correct answer (${item.correctAnswer}).`}</div>
           </div>
         `;
-
         container.appendChild(card);
       });
-
-      // Update Summary Header stats
-      const pct = Math.round((totalEarned / totalMax) * 100);
-      document.getElementById('res-score-num').textContent = `${totalEarned} / ${totalMax}`;
-      document.getElementById('res-score-pct').textContent = `${pct}% Score`;
-      document.getElementById('stat-correct').textContent = correctCount;
-      document.getElementById('stat-incorrect').textContent = incorrectCount;
-      document.getElementById('stat-skipped').textContent = skippedCount;
-      document.getElementById('q-total-count').textContent = `${EVALUATED_QUESTIONS.length} Questions Reviewed`;
     }
   </script>
 </body>
