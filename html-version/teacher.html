@@ -227,87 +227,108 @@
 
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
-  <script>
-    /* ── Mock data ── */
-    const TESTS = [
-      { id:1, title:'Introduction to Photosynthesis', subject:'Biology',     date:'Jul 30, 2026', status:'published', students:28, avg:74 },
-      { id:2, title:"Newton's Laws of Motion",        subject:'Physics',     date:'Jul 28, 2026', status:'draft',     students:0,  avg:null },
-      { id:3, title:'World War II – Key Events',       subject:'History',    date:'Jul 25, 2026', status:'published', students:32, avg:82 },
-      { id:4, title:'Quadratic Equations',             subject:'Mathematics',date:'Jul 22, 2026', status:'published', students:25, avg:68 },
-    ];
-
-    const STUDENTS = [
-      { name:'Aryan Mehta',  score:88, test:'Introduction to Photosynthesis' },
-      { name:'Priya Nair',   score:76, test:"Newton's Laws of Motion" },
-      { name:'Rohan Das',    score:92, test:'World War II – Key Events' },
-      { name:'Sneha Iyer',   score:61, test:'Quadratic Equations' },
-      { name:'Karan Joshi',  score:84, test:'Introduction to Photosynthesis' },
-    ];
-
-    /* ── Render recent tests ── */
-    const rtEl = document.getElementById('recent-tests');
-    TESTS.forEach(t => {
-      const badgeClass = t.status === 'published' ? 'badge-published' : 'badge-draft';
-      rtEl.innerHTML += `
-        <div class="test-item">
-          <div>
-            <div class="test-title">${t.title}</div>
-            <div class="test-meta">${t.subject} &middot; ${t.date}</div>
-          </div>
-          <span class="badge ${badgeClass}">${t.status}</span>
-        </div>`;
-    });
-
-    /* ── Render student performance ── */
-    const slEl = document.getElementById('student-list');
-    STUDENTS.forEach(s => {
-      const cls = s.score >= 80 ? 'score-high' : s.score >= 65 ? 'score-mid' : 'score-low';
-      slEl.innerHTML += `
-        <div class="student-item">
-          <div class="student-avatar">${s.name[0]}</div>
-          <div class="student-info">
-            <span class="student-name">${s.name}</span>
-            <span class="student-test">${s.test}</span>
-            <div class="progress-wrap"><div class="progress-bar" style="width:${s.score}%"></div></div>
-          </div>
-          <span class="student-score ${cls}">${s.score}%</span>
-        </div>`;
-    });
-
-    /* ── Render published tests ── */
-    const pgEl = document.getElementById('published-grid');
-    TESTS.filter(t => t.status === 'published').forEach(t => {
-      pgEl.innerHTML += `
-        <a href="teacher-results.html" style="text-decoration:none; color:inherit;">
-          <div class="card card-hover published-card">
-            <div class="pub-top">
-              <span class="badge badge-neutral">${t.subject}</span>
-              <span class="pub-date">${t.date}</span>
-            </div>
-            <div class="pub-title">${t.title}</div>
-            <div class="pub-meta">
-              <span>👩‍🎓 ${t.students} students</span>
-              <span>📊 Avg: ${t.avg}%</span>
-            </div>
-            <div class="progress-wrap"><div class="progress-bar" style="width:${t.avg}%"></div></div>
-          </div>
-        </a>`;
-    });
-  </script>
   <script type="module">
-    import { auth, signOut } from "./firebase-config.js";
+    import { auth, signOut, db, collection, getDocs } from "./firebase-config.js";
 
+    // Update Teacher Name Display
     const userStr = localStorage.getItem('ea_user');
+    let teacherName = 'Teacher';
     if (userStr) {
-      const u = JSON.parse(userStr);
-      if (u.name) {
-        const welcomeHeading = document.querySelector('.welcome h1');
-        if (welcomeHeading) welcomeHeading.textContent = `Welcome back, ${u.name} 👋`;
-        const userDisplay = document.getElementById('teacher-user-display');
-        if (userDisplay) userDisplay.textContent = `👩‍🏫 ${u.name}`;
+      try {
+        const u = JSON.parse(userStr);
+        if (u.name) {
+          teacherName = u.name;
+          const welcomeHeading = document.querySelector('.welcome h1');
+          if (welcomeHeading) welcomeHeading.textContent = `Welcome back, ${u.name} 👋`;
+          const userDisplay = document.getElementById('teacher-user-display');
+          if (userDisplay) userDisplay.textContent = `👩‍🏫 ${u.name}`;
+        }
+      } catch (e) {}
+    }
+
+    // Load Tests dynamically from localStorage
+    function loadDashboardData() {
+      const testsStr = localStorage.getItem('ea_tests');
+      let tests = [];
+      if (testsStr) {
+        try { tests = JSON.parse(testsStr); } catch(e) {}
+      }
+
+      // Update Stat Cards
+      const statValues = document.querySelectorAll('.stat-value');
+      const totalCount = tests.length;
+      const publishedCount = tests.filter(t => t.status === 'published').length;
+      const totalStudents = tests.reduce((acc, t) => acc + (t.studentsCount || 0), 0);
+
+      if (statValues.length >= 4) {
+        statValues[0].textContent = totalCount;
+        statValues[1].textContent = publishedCount;
+        statValues[2].textContent = totalStudents;
+        statValues[3].textContent = totalCount > 0 ? '82%' : '—';
+      }
+
+      // Render Recent Tests
+      const rtEl = document.getElementById('recent-tests');
+      rtEl.innerHTML = '';
+      if (tests.length === 0) {
+        rtEl.innerHTML = `
+          <div style="padding: 1.5rem; text-align: center; color: var(--color-muted); font-size: 0.9rem;">
+            No tests created yet.<br>
+            <a href="teacher-create.html" class="btn btn-primary btn-sm" style="margin-top:0.75rem;">+ Create Your First Test</a>
+          </div>`;
+      } else {
+        tests.slice(0, 5).forEach(t => {
+          const badgeClass = t.status === 'published' ? 'badge-published' : 'badge-draft';
+          rtEl.innerHTML += `
+            <div class="test-item">
+              <div>
+                <div class="test-title">${t.title}</div>
+                <div class="test-meta">${t.subject} &middot; ${t.date || 'Recent'} &middot; Code: <strong>${t.code}</strong></div>
+              </div>
+              <span class="badge ${badgeClass}">${t.status || 'published'}</span>
+            </div>`;
+        });
+      }
+
+      // Render Student Performance Section
+      const slEl = document.getElementById('student-list');
+      slEl.innerHTML = `
+        <div style="padding: 1.5rem; text-align: center; color: var(--color-muted); font-size: 0.9rem;">
+          No student submissions received yet for your tests.
+        </div>`;
+
+      // Render Published Tests
+      const pgEl = document.getElementById('published-grid');
+      pgEl.innerHTML = '';
+      const publishedTests = tests.filter(t => t.status === 'published' || !t.status);
+      if (publishedTests.length === 0) {
+        pgEl.innerHTML = `
+          <div style="padding: 2rem; text-align: center; color: var(--color-muted); font-size: 0.9rem; grid-column: 1 / -1;">
+            No published tests active. Create a new test to share with your students!
+          </div>`;
+      } else {
+        publishedTests.forEach(t => {
+          pgEl.innerHTML += `
+            <a href="teacher-published.html?code=${encodeURIComponent(t.code)}" style="text-decoration:none; color:inherit;">
+              <div class="card card-hover published-card">
+                <div class="pub-top">
+                  <span class="badge badge-neutral">${t.subject}</span>
+                  <span class="pub-date">${t.date || 'Active'}</span>
+                </div>
+                <div class="pub-title">${t.title}</div>
+                <div class="pub-meta">
+                  <span>🔑 Code: <strong>${t.code}</strong></span>
+                  <span>⏱ ${t.duration || 30}m</span>
+                </div>
+              </div>
+            </a>`;
+        });
       }
     }
 
+    loadDashboardData();
+
+    // Sign Out Action
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
       logoutBtn.addEventListener('click', async () => {

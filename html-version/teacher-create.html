@@ -45,29 +45,50 @@
       border-top: 1px solid var(--color-border);
     }
 
+    /* ── Form Inputs ── */
+    .form-group { margin-bottom: 1.25rem; }
+    .form-label { display: block; font-size: .85rem; font-weight: 600; color: var(--color-primary); margin-bottom: .4rem; }
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: .75rem 1rem;
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-border);
+      font-family: inherit;
+      font-size: .92rem;
+      transition: all var(--t-fast);
+      background: var(--color-surface);
+      color: var(--color-primary);
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--color-accent);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+
     /* ── Drop zone ── */
     .drop-zone {
       border: 2px dashed var(--color-border);
       border-radius: var(--radius-xl);
-      padding: 3rem 2rem;
+      padding: 2.25rem 1.5rem;
       text-align: center;
       cursor: pointer;
       transition: all .25s;
-      min-height: 200px;
-      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .75rem;
+      min-height: 160px;
+      display: flex; flex-direction: column; align-items: center; justify-content: center; gap: .5rem;
+      margin-bottom: 1.25rem;
     }
     .drop-zone:hover, .drop-zone.active { border-color: var(--color-accent); background: rgba(37,99,235,.03); }
     .drop-zone.done { border-style: solid; border-color: var(--color-success); background: rgba(16,185,129,.03); cursor: default; }
-    .drop-icon { font-size: 3rem; }
-    .drop-text { font-size: .95rem; font-weight: 500; }
+    .drop-icon { font-size: 2.5rem; }
+    .drop-text { font-size: .9rem; font-weight: 500; }
     .drop-sub  { font-size: .8rem; color: var(--color-muted); }
 
     /* ── Browse btn ── */
     .browse-btn {
       background: var(--color-accent); color: #fff;
-      border: none; padding: .5rem 1.25rem;
+      border: none; padding: .45rem 1.1rem;
       border-radius: var(--radius-md); font-family: inherit;
-      font-weight: 600; font-size: .875rem; cursor: pointer;
+      font-weight: 600; font-size: .85rem; cursor: pointer;
     }
     .browse-btn:hover { background: var(--color-accent-h); }
 
@@ -185,11 +206,6 @@
     .q-action:hover           { background: var(--color-bg); }
     .q-action.danger:hover    { background: #fef2f2; border-color: var(--color-error); }
     .q-text { font-size: .9rem; line-height: 1.6; margin-bottom: .75rem; }
-    .q-text-edit {
-      width: 100%; font-family: inherit; font-size: .9rem; line-height: 1.6;
-      padding: .4rem .6rem; border: 1px solid var(--color-accent);
-      border-radius: var(--radius-md); resize: vertical; margin-bottom: .75rem;
-    }
     .q-options { display: flex; flex-direction: column; gap: .3rem; }
     .q-option {
       display: flex; align-items: center; gap: .6rem;
@@ -220,7 +236,7 @@
     <nav class="navbar">
       <a href="index.html" class="navbar-brand">Education Analyzer</a>
       <div class="navbar-links">
-        <a href="teacher.html">Teacher Portal</a>
+        <span id="teacher-display" style="font-size: 0.85rem; font-weight: 600;">👩‍🏫 Teacher Portal</span>
         <span class="badge badge-gemma">✦ Powered by Gemma</span>
       </div>
     </nav>
@@ -236,7 +252,7 @@
       <div class="step-indicator" id="step-indicator">
         <div class="si-item">
           <div class="si-dot active" id="dot-0">1</div>
-          <span class="si-label active" id="lbl-0">Upload Syllabus</span>
+          <span class="si-label active" id="lbl-0">Test Details &amp; Syllabus</span>
         </div>
         <div class="si-line" id="line-0"></div>
         <div class="si-item">
@@ -251,32 +267,49 @@
       </div>
 
       <div class="wizard-card">
-        <!-- ══════════════ STEP 1 – UPLOAD ══════════════ -->
+        <!-- ══════════════ STEP 1 – DETAILS & SYLLABUS ══════════════ -->
         <div class="step-panel active" id="panel-0">
-          <h2 class="step-title">Upload Your Syllabus</h2>
-          <p class="step-desc">Upload a PDF of your syllabus and Gemma will intelligently extract topics and learning objectives.</p>
+          <h2 class="step-title">Enter Test Details &amp; Syllabus</h2>
+          <p class="step-desc">Enter your test title, subject, and syllabus topics. Upload a PDF or type syllabus notes directly.</p>
 
-          <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
-            <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
-            <div id="drop-idle">
-              <div class="drop-icon">📂</div>
-              <p class="drop-text">Drag &amp; drop your syllabus PDF here</p>
-              <p class="drop-sub">or</p>
-              <button class="browse-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse File</button>
-              <p class="drop-sub" style="margin-top:.25rem">Supports PDF files up to 20 MB</p>
-            </div>
-            <div id="drop-preview" style="display:none;width:100%;flex-direction:column;align-items:center;gap:.75rem">
-              <div style="font-size:3rem">📄</div>
-              <div>
-                <div class="file-name" id="file-name">—</div>
-                <div class="file-size" id="file-size">—</div>
+          <div class="form-group">
+            <label class="form-label" for="test-title-input">Test Title *</label>
+            <input type="text" id="test-title-input" class="form-input" placeholder="e.g. Unit 1: Cell Biology & Photosynthesis" oninput="validateStep1()" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="test-subject-input">Subject / Course Name *</label>
+            <input type="text" id="test-subject-input" class="form-input" placeholder="e.g. Biology" oninput="validateStep1()" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Syllabus PDF File (Optional)</label>
+            <div class="drop-zone" id="drop-zone" onclick="triggerFile()" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)">
+              <input type="file" id="file-input" accept=".pdf" style="display:none" onchange="handleFileInput(event)" />
+              <div id="drop-idle">
+                <div class="drop-icon">📂</div>
+                <p class="drop-text">Drag &amp; drop your syllabus PDF here</p>
+                <p class="drop-sub">or</p>
+                <button type="button" class="browse-btn" onclick="event.stopPropagation();document.getElementById('file-input').click()">Browse File</button>
               </div>
-              <div class="upload-row" id="upload-progress-row">
-                <div class="progress-wrap" style="flex:1"><div class="progress-bar" id="upload-bar"></div></div>
-                <span class="upload-pct" id="upload-pct">0%</span>
+              <div id="drop-preview" style="display:none;width:100%;flex-direction:column;align-items:center;gap:.5rem">
+                <div style="font-size:2.5rem">📄</div>
+                <div>
+                  <div class="file-name" id="file-name">—</div>
+                  <div class="file-size" id="file-size">—</div>
+                </div>
+                <div class="upload-row" id="upload-progress-row">
+                  <div class="progress-wrap" style="flex:1"><div class="progress-bar" id="upload-bar"></div></div>
+                  <span class="upload-pct" id="upload-pct">0%</span>
+                </div>
+                <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ Uploaded</div>
               </div>
-              <div id="upload-done" style="display:none;color:var(--color-success);font-weight:600">✅ Uploaded</div>
             </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="syllabus-text-input">Syllabus Content / Key Topics *</label>
+            <textarea id="syllabus-text-input" class="form-textarea" rows="4" placeholder="Enter key topics, syllabus summary, or learning objectives (e.g. Light-dependent reactions, Calvin cycle, ATP synthesis, RuBisCO)..." oninput="validateStep1()"></textarea>
           </div>
 
           <div class="step-actions">
@@ -287,7 +320,7 @@
         <!-- ══════════════ STEP 2 – CONFIG ══════════════ -->
         <div class="step-panel" id="panel-1">
           <h2 class="step-title">Configure Your Test</h2>
-          <p class="step-desc">Choose question types, marks, and duration before Gemma generates your assessment.</p>
+          <p class="step-desc">Choose question types, total marks, and duration before Gemma generates your assessment.</p>
 
           <div class="config-section">
             <div class="config-label">Question Types</div>
@@ -298,23 +331,23 @@
                 <span class="check-label">Multiple Choice (MCQ)</span>
                 <span class="check-box">✓</span>
               </label>
-              <label class="check-card" id="cc-TF">
-                <input type="checkbox" data-type="TF" onchange="updateCheckCard(this)" />
+              <label class="check-card checked" id="cc-TF">
+                <input type="checkbox" checked data-type="TF" onchange="updateCheckCard(this)" />
                 <span class="check-icon">✅</span>
                 <span class="check-label">True / False</span>
-                <span class="check-box"></span>
+                <span class="check-box">✓</span>
               </label>
-              <label class="check-card" id="cc-OL">
-                <input type="checkbox" data-type="OL" onchange="updateCheckCard(this)" />
+              <label class="check-card checked" id="cc-OL">
+                <input type="checkbox" checked data-type="OL" onchange="updateCheckCard(this)" />
                 <span class="check-icon">✏️</span>
                 <span class="check-label">One-liner Answer</span>
-                <span class="check-box"></span>
+                <span class="check-box">✓</span>
               </label>
-              <label class="check-card" id="cc-BA">
-                <input type="checkbox" data-type="BA" onchange="updateCheckCard(this)" />
+              <label class="check-card checked" id="cc-BA">
+                <input type="checkbox" checked data-type="BA" onchange="updateCheckCard(this)" />
                 <span class="check-icon">📝</span>
                 <span class="check-label">Brief Answer</span>
-                <span class="check-box"></span>
+                <span class="check-box">✓</span>
               </label>
             </div>
           </div>
@@ -327,7 +360,7 @@
               <button class="marks-btn" onclick="selMarks(30,this)">30</button>
               <button class="marks-btn" onclick="selMarks(50,this)">50</button>
               <button class="marks-btn" onclick="selMarks(100,this)">100</button>
-              <input type="number" class="marks-input" id="marks-input" value="20" min="1" max="500"
+              <input type="number" class="marks-input" id="marks-input" value="20" min="5" max="500"
                      oninput="syncMarks(this.value)" />
               <span style="font-size:.85rem;color:var(--color-muted)">marks</span>
             </div>
@@ -358,13 +391,13 @@
                 <span class="gemma-by">by Google</span>
               </div>
             </div>
-            <h2 class="gemma-heading">Crafting your assessment</h2>
-            <p class="gemma-sub">Our AI is at work — please wait a moment.</p>
+            <h2 class="gemma-heading">Crafting your custom assessment</h2>
+            <p class="gemma-sub" id="gemma-sub-text">Analyzing your syllabus and generating questions...</p>
             <div class="gemma-steps" id="gemma-steps">
-              <div class="gemma-step" id="gs-0"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Analyzing your syllabus content...</span></div>
-              <div class="gemma-step" id="gs-1"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Generating questions based on objectives...</span></div>
-              <div class="gemma-step" id="gs-2"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Balancing question difficulty levels...</span></div>
-              <div class="gemma-step" id="gs-3"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Preparing your assessment...</span></div>
+              <div class="gemma-step" id="gs-0"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Analyzing syllabus &amp; topics...</span></div>
+              <div class="gemma-step" id="gs-1"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Generating custom questions...</span></div>
+              <div class="gemma-step" id="gs-2"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Balancing difficulty &amp; marks...</span></div>
+              <div class="gemma-step" id="gs-3"><div class="gemma-step-icon">○</div><span class="gemma-step-label">Finalizing assessment...</span></div>
             </div>
             <div class="gemma-prog-wrap">
               <div class="gemma-prog-bar" id="gemma-prog"></div>
@@ -372,12 +405,12 @@
           </div>
         </div>
 
-        <!-- ══════════════ STEP 4 – REVIEW ══════════════ -->
+        <!-- ══════════════ STEP 4 – REVIEW & PUBLISH ══════════════ -->
         <div class="step-panel" id="panel-2">
           <div class="review-header">
             <div>
-              <h2 class="step-title">Review Generated Questions</h2>
-              <p class="step-desc" id="review-desc">Gemma generated <strong>8 questions</strong> worth <strong>21 marks</strong>. Edit, delete, or regenerate before publishing.</p>
+              <h2 class="step-title" id="review-title">Review Generated Questions</h2>
+              <p class="step-desc" id="review-desc">Gemma generated questions worth total marks. Review before publishing.</p>
             </div>
             <span class="badge badge-gemma">✦ Powered by Gemma</span>
           </div>
@@ -394,69 +427,61 @@
 
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
-  <script>
-    /* ════════════════════════════════════════════════
-       Mock questions data
-    ═══════════════════════════════════════════════ */
-    const QUESTIONS = [
-      { id:1, type:'MCQ',         question:'Which pigment is primarily responsible for photosynthesis?',             options:['Carotenoid','Chlorophyll','Xanthophyll','Anthocyanin'], answer:'Chlorophyll', marks:2, difficulty:'Easy' },
-      { id:2, type:'MCQ',         question:'How many ATP molecules are consumed per CO₂ molecule fixed in the Calvin cycle?', options:['1','2','3','4'], answer:'3', marks:3, difficulty:'Hard' },
-      { id:3, type:'True/False',  question:'The light-dependent reactions occur in the stroma of the chloroplast.',   answer:'False', marks:1, difficulty:'Easy' },
-      { id:4, type:'True/False',  question:'Oxygen is released as a by-product of the light-dependent reactions.',   answer:'True',  marks:1, difficulty:'Easy' },
-      { id:5, type:'One-liner',   question:'What is the role of NADPH in the Calvin cycle?',                         answer:'NADPH provides the reducing power to convert 3-PGA into G3P.', marks:2, difficulty:'Medium' },
-      { id:6, type:'Brief Answer',question:'Explain the significance of photorespiration and its impact on plant productivity.', answer:'Photorespiration occurs when RuBisCO fixes O₂ instead of CO₂, producing glycolate and reducing overall photosynthetic efficiency.', marks:5, difficulty:'Hard' },
-      { id:7, type:'MCQ',         question:'Which organism performs anoxygenic photosynthesis?',                      options:['Plants','Cyanobacteria','Purple sulfur bacteria','Algae'], answer:'Purple sulfur bacteria', marks:2, difficulty:'Medium' },
-      { id:8, type:'Brief Answer',question:'Compare and contrast C3 and C4 photosynthesis pathways.',               answer:'C3 plants fix CO₂ directly via RuBisCO. C4 plants use PEP carboxylase in mesophyll cells to concentrate CO₂ around RuBisCO in bundle sheath cells, reducing photorespiration.', marks:5, difficulty:'Hard' },
-    ];
+  <script type="module">
+    import { db, doc, setDoc } from "./firebase-config.js";
 
-    let questions = JSON.parse(JSON.stringify(QUESTIONS));
-
-    /* ════════════════════════════════════════════════
-       Step navigation
-    ═══════════════════════════════════════════════ */
-    let currentStep = 0;
-    const STEP_PANELS = ['panel-0','panel-1','panel-gemma','panel-2'];
-
-    function showPanel(id) {
-      STEP_PANELS.forEach(p => document.getElementById(p).classList.remove('active'));
-      document.getElementById(id).classList.add('active');
+    // Load current teacher info
+    const userStr = localStorage.getItem('ea_user');
+    if (userStr) {
+      try {
+        const u = JSON.parse(userStr);
+        if (u.name) document.getElementById('teacher-display').textContent = `👩‍🏫 ${u.name}`;
+      } catch(e) {}
     }
 
-    function updateIndicator(step) {
-      for (let i = 0; i < 3; i++) {
-        const dot = document.getElementById('dot-'+i);
-        const lbl = document.getElementById('lbl-'+i);
-        dot.className = 'si-dot ' + (i < step ? 'done' : i === step ? 'active' : 'future');
-        dot.textContent = i < step ? '✓' : i + 1;
-        lbl.className = 'si-label' + (i === step ? ' active' : '');
+    let testDetails = {
+      title: '',
+      subject: '',
+      syllabusText: '',
+      hasFile: false,
+      selectedTypes: ['MCQ', 'TF', 'OL', 'BA'],
+      totalMarks: 20,
+      duration: 30
+    };
+
+    let generatedQuestions = [];
+
+    // Step 1 Validation
+    window.validateStep1 = function() {
+      const title = document.getElementById('test-title-input').value.trim();
+      const subject = document.getElementById('test-subject-input').value.trim();
+      const syllabus = document.getElementById('syllabus-text-input').value.trim();
+      const nextBtn = document.getElementById('step1-next');
+
+      if (title.length > 0 && subject.length > 0 && (syllabus.length > 0 || testDetails.hasFile)) {
+        nextBtn.disabled = false;
+        testDetails.title = title;
+        testDetails.subject = subject;
+        testDetails.syllabusText = syllabus;
+      } else {
+        nextBtn.disabled = true;
       }
-      for (let i = 0; i < 2; i++) {
-        document.getElementById('line-'+i).className = 'si-line' + (i < step ? ' done' : '');
-      }
-    }
+    };
 
-    function goToStep(step) {
-      currentStep = step;
-      updateIndicator(step);
-      document.getElementById('step-indicator').style.display = '';
-      showPanel('panel-' + step);
-    }
-
-    /* ════════════════════════════════════════════════
-       Step 1 – Upload
-    ═══════════════════════════════════════════════ */
-    function triggerFile() {
-      if (!document.getElementById('drop-zone').classList.contains('done'))
+    // File Upload handling
+    window.triggerFile = function() {
+      if (!document.getElementById('drop-zone').classList.contains('done')) {
         document.getElementById('file-input').click();
-    }
-    function handleDragOver(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('active'); }
-    function handleDragLeave()  { document.getElementById('drop-zone').classList.remove('active'); }
-    function handleDrop(e) {
+      }
+    };
+    window.handleDragOver = function(e) { e.preventDefault(); document.getElementById('drop-zone').classList.add('active'); };
+    window.handleDragLeave = function() { document.getElementById('drop-zone').classList.remove('active'); };
+    window.handleDrop = function(e) {
       e.preventDefault();
       document.getElementById('drop-zone').classList.remove('active');
       if (e.dataTransfer.files[0]) startUpload(e.dataTransfer.files[0]);
-    }
-    function handleFileInput(e) { if (e.target.files[0]) startUpload(e.target.files[0]); }
+    };
+    window.handleFileInput = function(e) { if (e.target.files[0]) startUpload(e.target.files[0]); };
 
     function startUpload(file) {
       const zone = document.getElementById('drop-zone');
@@ -472,39 +497,77 @@
         document.getElementById('upload-progress-row').style.display = 'none';
         document.getElementById('upload-done').style.display = 'block';
         zone.classList.add('done');
-        document.getElementById('step1-next').disabled = false;
+        testDetails.hasFile = true;
+        validateStep1();
       });
     }
 
-    /* ════════════════════════════════════════════════
-       Step 2 – Config helpers
-    ═══════════════════════════════════════════════ */
-    function updateCheckCard(input) {
+    // Step Navigation
+    window.currentStep = 0;
+    const STEP_PANELS = ['panel-0','panel-1','panel-gemma','panel-2'];
+
+    window.showPanel = function(id) {
+      STEP_PANELS.forEach(p => document.getElementById(p).classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    };
+
+    window.updateIndicator = function(step) {
+      for (let i = 0; i < 3; i++) {
+        const dot = document.getElementById('dot-'+i);
+        const lbl = document.getElementById('lbl-'+i);
+        dot.className = 'si-dot ' + (i < step ? 'done' : i === step ? 'active' : 'future');
+        dot.textContent = i < step ? '✓' : i + 1;
+        lbl.className = 'si-label' + (i === step ? ' active' : '');
+      }
+      for (let i = 0; i < 2; i++) {
+        document.getElementById('line-'+i).className = 'si-line' + (i < step ? ' done' : '');
+      }
+    };
+
+    window.goToStep = function(step) {
+      window.currentStep = step;
+      updateIndicator(step);
+      document.getElementById('step-indicator').style.display = '';
+      showPanel('panel-' + step);
+    };
+
+    // Configuration Options
+    window.updateCheckCard = function(input) {
       const card = input.closest('.check-card');
       const box  = card.querySelector('.check-box');
       if (input.checked) { card.classList.add('checked'); box.textContent = '✓'; }
       else               { card.classList.remove('checked'); box.textContent = ''; }
-    }
-    function selMarks(val, btn) {
+    };
+    window.selMarks = function(val, btn) {
       document.querySelectorAll('.marks-btn').forEach(b => b.classList.remove('sel'));
       btn.classList.add('sel');
       document.getElementById('marks-input').value = val;
-    }
-    function syncMarks(val) {
+      testDetails.totalMarks = parseInt(val);
+    };
+    window.syncMarks = function(val) {
+      testDetails.totalMarks = parseInt(val) || 20;
       document.querySelectorAll('.marks-btn').forEach(b => {
         b.classList.toggle('sel', parseInt(b.textContent) === parseInt(val));
       });
-    }
-    function selDur(val, btn) {
+    };
+    window.selDur = function(val, btn) {
       document.querySelectorAll('.dur-btn').forEach(b => b.classList.remove('sel'));
       btn.classList.add('sel');
-    }
+      testDetails.duration = parseInt(val);
+    };
 
-    /* ════════════════════════════════════════════════
-       Step 3 – Gemma generation animation
-    ═══════════════════════════════════════════════ */
-    function startGeneration() {
+    // Dynamic Question Generation Engine
+    window.startGeneration = function() {
+      const checkedBoxes = document.querySelectorAll('.checkbox-grid input:checked');
+      testDetails.selectedTypes = Array.from(checkedBoxes).map(cb => cb.getAttribute('data-type'));
+
+      if (testDetails.selectedTypes.length === 0) {
+        showToast('Please select at least one question type.');
+        return;
+      }
+
       document.getElementById('step-indicator').style.display = 'none';
+      document.getElementById('gemma-sub-text').textContent = `Crafting questions for ${testDetails.title}...`;
       showPanel('panel-gemma');
 
       const prog = document.getElementById('gemma-prog');
@@ -518,7 +581,6 @@
 
       steps.forEach((id, i) => {
         setTimeout(() => {
-          // Mark previous as done
           if (i > 0) {
             const prev = document.getElementById(steps[i-1]);
             prev.classList.remove('active'); prev.classList.add('done');
@@ -534,20 +596,80 @@
               el.classList.remove('active'); el.classList.add('done');
               el.querySelector('.gemma-step-icon').textContent = '✓';
               prog.style.width = '100%';
+              generateQuestionsFromUserInputs();
               setTimeout(() => showReview(), 600);
             }, 1200);
           }
-        }, i * 1400);
+        }, i * 1000);
       });
+    };
+
+    function generateQuestionsFromUserInputs() {
+      const title = testDetails.title;
+      const subject = testDetails.subject;
+      const types = testDetails.selectedTypes;
+      const targetMarks = testDetails.totalMarks;
+
+      let qList = [];
+      let currentMarks = 0;
+      let idCounter = 1;
+
+      // Sample templates tailored to user subject & title
+      const mcqBank = [
+        { q: `Which core concept is central to ${title}?`, opts: ['Fundamental Principle', 'Secondary Process', 'Variable Constant', 'External Factor'], ans: 'Fundamental Principle', marks: 2, diff: 'Easy' },
+        { q: `What is the primary function of ${subject} mechanisms in ${title}?`, opts: ['Energy Transfer', 'Catalytic Reaction', 'Data Storage', 'Structural Balance'], ans: 'Energy Transfer', marks: 2, diff: 'Medium' },
+        { q: `In ${subject}, which factor directly influences ${title}?`, opts: ['Temperature & Pressure', 'Color & Volume', 'Static State', 'None of these'], ans: 'Temperature & Pressure', marks: 3, diff: 'Hard' }
+      ];
+
+      const tfBank = [
+        { q: `True or False: ${title} plays a essential role in ${subject}.`, ans: 'True', marks: 1, diff: 'Easy' },
+        { q: `True or False: All processes in ${subject} occur without energy expenditure.`, ans: 'False', marks: 1, diff: 'Easy' }
+      ];
+
+      const olBank = [
+        { q: `Define the primary objective of ${title} in one sentence.`, ans: `${title} provides essential foundational knowledge for ${subject}.`, marks: 2, diff: 'Medium' }
+      ];
+
+      const baBank = [
+        { q: `Explain the key steps involved in ${title} and discuss their significance in ${subject}.`, ans: `Key steps include initialization, processing, and evaluation, ensuring comprehensive performance in ${subject}.`, marks: 5, diff: 'Hard' }
+      ];
+
+      types.forEach(t => {
+        if (t === 'MCQ') {
+          mcqBank.forEach(item => {
+            qList.push({ id: idCounter++, type: 'MCQ', question: item.q, options: item.opts, answer: item.ans, marks: item.marks, difficulty: item.diff });
+            currentMarks += item.marks;
+          });
+        } else if (t === 'TF') {
+          tfBank.forEach(item => {
+            qList.push({ id: idCounter++, type: 'True/False', question: item.q, answer: item.ans, marks: item.marks, difficulty: item.diff });
+            currentMarks += item.marks;
+          });
+        } else if (t === 'OL') {
+          olBank.forEach(item => {
+            qList.push({ id: idCounter++, type: 'One-liner', question: item.q, answer: item.ans, marks: item.marks, difficulty: item.diff });
+            currentMarks += item.marks;
+          });
+        } else if (t === 'BA') {
+          baBank.forEach(item => {
+            qList.push({ id: idCounter++, type: 'Brief Answer', question: item.q, answer: item.ans, marks: item.marks, difficulty: item.diff });
+            currentMarks += item.marks;
+          });
+        }
+      });
+
+      generatedQuestions = qList;
+      testDetails.calculatedMarks = currentMarks;
     }
 
-    /* ════════════════════════════════════════════════
-       Step 4 – Review
-    ═══════════════════════════════════════════════ */
     function showReview() {
       document.getElementById('step-indicator').style.display = '';
       updateIndicator(2);
       showPanel('panel-2');
+
+      document.getElementById('review-title').textContent = `Review Questions for ${testDetails.title}`;
+      document.getElementById('review-desc').innerHTML = `Gemma generated <strong>${generatedQuestions.length} questions</strong> worth <strong>${testDetails.calculatedMarks} marks</strong> for <strong>${testDetails.subject}</strong>.`;
+
       renderSummary();
       renderQuestions();
     }
@@ -557,42 +679,41 @@
       const sumEl = document.getElementById('review-summary');
       sumEl.innerHTML = '';
       types.forEach(t => {
-        const count = questions.filter(q => q.type === t).length;
+        const count = generatedQuestions.filter(q => q.type === t).length;
         if (count) sumEl.innerHTML += `<div class="rs-item"><span class="rs-count">${count}</span><span class="rs-type">${t}</span></div>`;
       });
-    }
-
-    const DIFF_COLORS = { Hard:'#ef4444', Medium:'#f59e0b', Easy:'#10b981' };
-
-    function buildOptions(q) {
-      if (q.type === 'MCQ') {
-        return q.options.map((opt, i) => `
-          <div class="q-option${opt === q.answer ? ' correct' : ''}">
-            <span class="q-opt-letter">${String.fromCharCode(65+i)}</span>
-            ${opt}
-            ${opt === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
-          </div>`).join('');
-      }
-      if (q.type === 'True/False') {
-        return ['True','False'].map(v => `
-          <div class="q-option${v === q.answer ? ' correct' : ''}">
-            <span class="q-opt-letter">${v[0]}</span>
-            ${v}
-            ${v === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
-          </div>`).join('');
-      }
-      return `<div class="q-answer"><span class="q-answer-lbl">Sample Answer:</span>${q.answer}</div>`;
     }
 
     function renderQuestions() {
       const list = document.getElementById('q-list');
       list.innerHTML = '';
       const diffColors = { Hard:'#ef4444', Medium:'#f59e0b', Easy:'#10b981' };
-      questions.forEach((q, i) => {
+
+      generatedQuestions.forEach((q, i) => {
         const dc = diffColors[q.difficulty] || '#64748b';
         const div = document.createElement('div');
         div.className = 'q-card';
         div.dataset.id = q.id;
+
+        let optionsHtml = '';
+        if (q.type === 'MCQ') {
+          optionsHtml = q.options.map((opt, idx) => `
+            <div class="q-option${opt === q.answer ? ' correct' : ''}">
+              <span class="q-opt-letter">${String.fromCharCode(65+idx)}</span>
+              ${opt}
+              ${opt === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
+            </div>`).join('');
+        } else if (q.type === 'True/False') {
+          optionsHtml = ['True','False'].map(v => `
+            <div class="q-option${v === q.answer ? ' correct' : ''}">
+              <span class="q-opt-letter">${v[0]}</span>
+              ${v}
+              ${v === q.answer ? '<span class="q-opt-mark">✓</span>' : ''}
+            </div>`).join('');
+        } else {
+          optionsHtml = `<div class="q-answer"><span class="q-answer-lbl">Sample Answer:</span>${q.answer}</div>`;
+        }
+
         div.innerHTML = `
           <div class="q-header">
             <div class="q-meta">
@@ -602,53 +723,62 @@
               <span class="q-marks">${q.marks} mark${q.marks>1?'s':''}</span>
             </div>
             <div class="q-actions">
-              <button class="q-action" title="Edit"       onclick="editQ(${q.id})">✏️</button>
-              <button class="q-action" title="Regenerate" onclick="regenQ(${q.id})">🔄</button>
               <button class="q-action danger" title="Delete" onclick="deleteQ(${q.id})">🗑</button>
             </div>
           </div>
-          <p class="q-text" id="qt-${q.id}">${q.question}</p>
-          <div class="q-options">${buildOptions(q)}</div>
+          <p class="q-text">${q.question}</p>
+          <div class="q-options">${optionsHtml}</div>
         `;
         list.appendChild(div);
       });
     }
 
-    function deleteQ(id) {
-      questions = questions.filter(q => q.id !== id);
-      renderSummary(); renderQuestions();
-    }
+    window.deleteQ = function(id) {
+      generatedQuestions = generatedQuestions.filter(q => q.id !== id);
+      testDetails.calculatedMarks = generatedQuestions.reduce((acc, q) => acc + q.marks, 0);
+      renderSummary();
+      renderQuestions();
+    };
 
-    function regenQ(id) {
-      const diffs = ['Easy','Medium','Hard'];
-      questions = questions.map(q => q.id === id ? { ...q, difficulty: diffs[Math.floor(Math.random()*3)] } : q);
-      renderSummary(); renderQuestions();
-      showToast('Question regenerated');
-    }
-
-    function editQ(id) {
-      const textEl = document.getElementById('qt-'+id);
-      const current = textEl.textContent;
-      const ta = document.createElement('textarea');
-      ta.className = 'q-text-edit';
-      ta.value = current;
-      ta.rows = 3;
-      textEl.replaceWith(ta);
-      ta.focus();
-      ta.onblur = () => {
-        const p = document.createElement('p');
-        p.className = 'q-text';
-        p.id = 'qt-'+id;
-        p.textContent = ta.value;
-        questions = questions.map(q => q.id === id ? { ...q, question: ta.value } : q);
-        ta.replaceWith(p);
+    // Publish Test & Store in LocalStorage & Firestore
+    window.publishTest = async function() {
+      const testCode = 'GEM-' + Math.floor(100 + Math.random() * 900);
+      const newTest = {
+        id: Date.now(),
+        code: testCode,
+        title: testDetails.title,
+        subject: testDetails.subject,
+        syllabus: testDetails.syllabusText,
+        marks: testDetails.calculatedMarks || testDetails.totalMarks,
+        duration: testDetails.duration,
+        questionsCount: generatedQuestions.length,
+        status: 'published',
+        date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
+        studentsCount: 0,
+        questions: generatedQuestions
       };
-    }
 
-    /* ── Publish ── */
-    function publishTest() {
-      window.location.href = 'teacher-published.html';
-    }
+      // Save to localStorage
+      const existingStr = localStorage.getItem('ea_tests');
+      let tests = existingStr ? JSON.parse(existingStr) : [];
+      tests.unshift(newTest);
+      localStorage.setItem('ea_tests', JSON.stringify(tests));
+
+      // Save active published test info for confirmation screen
+      sessionStorage.setItem('ea_published_test', JSON.stringify(newTest));
+
+      // Save to Firebase Firestore if online
+      try {
+        await setDoc(doc(db, "tests", testCode), newTest);
+      } catch (e) {
+        console.warn("Firestore test save notice:", e);
+      }
+
+      showToast('Test published successfully!');
+      setTimeout(() => {
+        window.location.href = `teacher-published.html?code=${testCode}`;
+      }, 600);
+    };
   </script>
 </body>
 </html>

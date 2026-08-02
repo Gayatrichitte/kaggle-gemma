@@ -200,10 +200,49 @@
   <div id="toast" class="toast"></div>
   <script src="app.js"></script>
   <script>
-    const TEST_CODE = 'GEM-472';
+    // Read dynamic test details from sessionStorage or URL query params
+    const urlParams = new URLSearchParams(window.location.search);
+    const paramCode = urlParams.get('code');
+    
+    let activeTest = null;
+    const pubTestStr = sessionStorage.getItem('ea_published_test');
+    if (pubTestStr) {
+      try { activeTest = JSON.parse(pubTestStr); } catch(e) {}
+    }
 
-    /* ── Entrance animation ── */
+    if (!activeTest) {
+      const testsStr = localStorage.getItem('ea_tests');
+      if (testsStr) {
+        try {
+          const tests = JSON.parse(testsStr);
+          if (paramCode) activeTest = tests.find(t => t.code === paramCode);
+          if (!activeTest && tests.length > 0) activeTest = tests[0];
+        } catch(e) {}
+      }
+    }
+
+    const TEST_CODE = activeTest ? activeTest.code : (paramCode || 'GEM-472');
+
     window.addEventListener('DOMContentLoaded', () => {
+      if (activeTest) {
+        const subEl = document.querySelector('.details-subject');
+        if (subEl) subEl.textContent = activeTest.subject || 'General';
+        const nameEl = document.querySelector('.details-name');
+        if (nameEl) nameEl.textContent = activeTest.title || 'Custom Test';
+        
+        const pills = document.querySelectorAll('.pill-value');
+        if (pills.length >= 3) {
+          pills[0].textContent = activeTest.questionsCount || (activeTest.questions ? activeTest.questions.length : 8);
+          pills[1].textContent = activeTest.marks || 20;
+          pills[2].textContent = activeTest.duration || 30;
+        }
+
+        const previewBtn = document.querySelector('a[href*="student-test.html"]');
+        if (previewBtn) {
+          previewBtn.href = `student-test.html?code=${encodeURIComponent(TEST_CODE)}&name=Teacher%20Preview`;
+        }
+      }
+
       setTimeout(() => document.getElementById('pub-body').classList.add('visible'), 60);
       buildCodeDigits();
       spawnConfetti();
@@ -212,6 +251,7 @@
     /* ── Build code digits with staggered animation ── */
     function buildCodeDigits() {
       const container = document.getElementById('code-digits');
+      container.innerHTML = '';
       TEST_CODE.split('').forEach((ch, i) => {
         const el = document.createElement('span');
         el.className = ch === '-' ? 'code-sep' : 'code-char';
