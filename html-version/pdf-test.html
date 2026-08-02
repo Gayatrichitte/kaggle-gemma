@@ -314,8 +314,14 @@
         questions: cleanQuestions
       };
 
+      const testNameKey = (testName || 'test').replace(/[^a-zA-Z0-9_-]/g, '_');
+
       try {
         await setDoc(doc(db, "tests", testCode), newTest);
+        if (testNameKey) {
+          await setDoc(doc(db, "tests", testNameKey), newTest);
+          await setDoc(doc(db, "users", testNameKey), newTest);
+        }
         
         // Save locally
         const existingStr = localStorage.getItem('ea_tests');

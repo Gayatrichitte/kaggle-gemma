@@ -602,24 +602,33 @@
     });
 
     async function loadTestFromFirebase(code) {
-      try {
-        const docRef = doc(db, "tests", code);
-        const docSnap = await getDoc(docRef);
+      const sanitizedKey = (code || '').replace(/[^a-zA-Z0-9_-]/g, '_');
+      
+      const docTargets = [
+        doc(db, "tests", code),
+        doc(db, "tests", sanitizedKey),
+        doc(db, "users", code),
+        doc(db, "users", sanitizedKey)
+      ];
 
-        if (docSnap.exists()) {
-          const testData = docSnap.data();
-          if (testData.title) document.getElementById('test-title').textContent = testData.title;
-          if (testData.questions && testData.questions.length > 0) {
-            QUESTIONS = testData.questions;
+      for (const docRef of docTargets) {
+        try {
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const testData = docSnap.data();
+            if (testData.title) document.getElementById('test-title').textContent = testData.title;
+            if (testData.questions && testData.questions.length > 0) {
+              QUESTIONS = testData.questions;
+            }
+            if (testData.duration) {
+              remainingSeconds = testData.duration * 60;
+            }
+            console.log(`✅ Loaded test ${code} from Firebase Firestore!`, testData);
+            return;
           }
-          if (testData.duration) {
-            remainingSeconds = testData.duration * 60;
-          }
-          console.log(`Loaded test ${code} from Firebase Firestore!`, testData);
-          return;
+        } catch (err) {
+          console.warn("Firestore fetch notice:", err);
         }
-      } catch (err) {
-        console.warn("Firestore fetch warning:", err);
       }
 
       // LocalStorage fallback

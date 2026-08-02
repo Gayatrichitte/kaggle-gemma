@@ -787,14 +787,20 @@
       // Save active published test info for confirmation screen
       sessionStorage.setItem('ea_published_test', JSON.stringify(newTest));
 
-      // Save to Firebase Firestore Database
+      // Save to Firebase Firestore Database under testCode and testName keys
+      const testNameKey = (testDetails.title || 'test').replace(/[^a-zA-Z0-9_-]/g, '_');
+
       try {
         await setDoc(doc(db, "tests", testCode), newTest);
-        console.log("✅ Test stored successfully in Firebase Firestore:", testCode);
-        showToast(`✅ Test ${testCode} saved to Firebase Firestore!`);
+        if (testNameKey) {
+          await setDoc(doc(db, "tests", testNameKey), newTest);
+          await setDoc(doc(db, "users", testNameKey), newTest);
+        }
+        console.log("✅ Test stored successfully in Firebase Firestore under tests and users:", testCode, testNameKey);
+        showToast(`✅ Test saved to Firebase Firestore! (Code: ${testCode})`);
       } catch (e) {
         console.error("❌ Firestore test save error:", e);
-        showToast("Notice: Saved locally. Firestore notice: " + e.message);
+        showToast("Saved locally. Firestore notice: " + e.message);
       }
 
       setTimeout(() => {
